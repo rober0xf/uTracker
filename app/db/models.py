@@ -52,3 +52,15 @@ class Fights(Base):
 
     def __repr__(self):
         return f'<Fight(id={self.id}, red={self.red_corner}, blue={self.blue_corner})>'
+
+
+class Card(Base):
+    __tablename__ = 'card'
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    card_name: Mapped[str] = mapped_column(String(50), nullable=False)
+    card_date: Mapped[datetime] = mapped_column(nullable=False)
+    main_event_id: Mapped[int] = mapped_column(ForeignKey('fights.id'), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+    # relationship definition
+    main_event = relationship('Fights', foreign_keys=[main_event_id])
