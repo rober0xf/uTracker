@@ -27,3 +27,28 @@ class Fighters(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())  # created when the record its created
     updated_at: Mapped[Optional[datetime]] = mapped_column(nullable=True)
 
+
+class Fights(Base):
+    __tablename__ = 'fights'
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    rounds: Mapped[RoundsEnum] = mapped_column(Enum(RoundsEnum), nullable=False)
+    division: Mapped[DivisionEnum] = mapped_column(Enum(DivisionEnum), nullable=False)
+    method: Mapped[WinningMethodEnum] = mapped_column(Enum(WinningMethodEnum), nullable=False)
+    card: Mapped[int] = mapped_column(ForeignKey('card.id'), nullable=False)
+    red_corner: Mapped[int] = mapped_column(ForeignKey('fighters.id'), nullable=False)
+    blue_corner: Mapped[int] = mapped_column(ForeignKey('fighters.id'), nullable=False)
+    favorite: Mapped[Optional[int]] = mapped_column(ForeignKey('fighters.id'), nullable=True)
+    winner: Mapped[Optional[int]] = mapped_column(ForeignKey('fighters.id'), nullable=True)
+    round_finish: Mapped[Optional[int]] = mapped_column(nullable=True)
+    time: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+    # relationship definition
+    card = relationship('Card', back_populates='fights')
+    red_fighter = relationship('Fighters', foreign_keys=[red_corner])
+    blue_fighter = relationship('Fighters', foreign_keys=[blue_corner])
+    favorite_fighter = relationship('Fighters', foreign_keys=[favorite])
+    winner_fighter = relationship('Fighters', foreign_keys=[winner])
+
+    def __repr__(self):
+        return f'<Fight(id={self.id}, red={self.red_corner}, blue={self.blue_corner})>'
