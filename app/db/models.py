@@ -64,3 +64,15 @@ class Cards(Base):
 
     # relationship definition
     main_event = relationship('Fights', foreign_keys=[main_event_id])
+
+
+class Picks(Base):
+    __tablename__ = 'picks'
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    fight_id: Mapped[int] = mapped_column(ForeignKey('fights.id'), nullable=False)
+    winner_pick: Mapped[int] = mapped_column(ForeignKey('fighters.id'), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+    # relationship definition
+    fight = relationship('Fights', foreign_keys=[fight_id])
+    winner_picked = relationship('Fighters', foreign_keys=[winner_pick])
