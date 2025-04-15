@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlalchemy.orm import declarative_base, Mapped, mapped_column, relationship
-from sqlalchemy import Enum, String
+from sqlalchemy import CheckConstraint, Enum, String
 from sqlalchemy.sql import func
 from sqlalchemy.sql.schema import ForeignKey
 from app.schemas.fighters import DivisionEnum
@@ -26,6 +26,12 @@ class Fighters(Base):
     reach: Mapped[Optional[float]] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())  # created when the record its created
     updated_at: Mapped[Optional[datetime]] = mapped_column(nullable=True)
+
+    # constraints
+    __table_args__ = (
+        CheckConstraint('LENGTH(name) >= 5', name='name_min_length'),
+        CheckConstraint('LENGTH(name) <=50', name='name_max_length'),
+    )
 
 
 class Fights(Base):
@@ -64,6 +70,12 @@ class Cards(Base):
 
     # relationship definition
     main_event = relationship('Fights', foreign_keys=[main_event_id])
+
+    # constraints
+    __table_args__ = (
+        CheckConstraint('LENGTH(card_name) >= 5', name='card_name_min_length'),
+        CheckConstraint('LENGTH(card_name) <=50', name='card_name_max_length'),
+    )
 
 
 class Picks(Base):
