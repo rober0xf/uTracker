@@ -54,8 +54,8 @@ class Fights(Base):
         return f'<Fight(id={self.id}, red={self.red_corner}, blue={self.blue_corner})>'
 
 
-class Card(Base):
-    __tablename__ = 'card'
+class Cards(Base):
+    __tablename__ = 'cards'
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     card_name: Mapped[str] = mapped_column(String(50), nullable=False)
     card_date: Mapped[datetime] = mapped_column(nullable=False)
