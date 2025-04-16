@@ -4,7 +4,7 @@ from sqlalchemy import CheckConstraint, Enum, String
 from sqlalchemy.sql import func
 from sqlalchemy.sql.schema import ForeignKey
 from app.schemas.fighters import DivisionEnum
-from app.schemas.fight import RoundsEnum, WinningMethodEnum
+from app.schemas.fights import RoundsEnum, WinningMethodEnum
 from typing import Optional
 
 
