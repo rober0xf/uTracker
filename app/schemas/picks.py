@@ -14,6 +14,9 @@ class Picks(PicksBase):
         None, description="Set by the datebase (do not provide manually)", validate_default=True
     )
 
+    class Config:
+        from_attributes = True
+
 
 class PicksCreate(PicksBase):
     pass
