@@ -11,7 +11,7 @@ from typing import Optional
 Base = declarative_base()
 
 
-class Fighters(Base):
+class FightersDB(Base):
     __tablename__ = 'fighters'
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True, index=True)
@@ -34,7 +34,7 @@ class Fighters(Base):
     )
 
 
-class Fights(Base):
+class FightsDB(Base):
     __tablename__ = 'fights'
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     rounds: Mapped[RoundsEnum] = mapped_column(Enum(RoundsEnum), nullable=False)
@@ -60,7 +60,7 @@ class Fights(Base):
         return f'<Fight(id={self.id}, red={self.red_corner}, blue={self.blue_corner})>'
 
 
-class Cards(Base):
+class CardsDB(Base):
     __tablename__ = 'cards'
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     card_name: Mapped[str] = mapped_column(String(50), nullable=False)
@@ -78,7 +78,7 @@ class Cards(Base):
     )
 
 
-class Picks(Base):
+class PicksDB(Base):
     __tablename__ = 'picks'
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     fight_id: Mapped[int] = mapped_column(ForeignKey('fights.id'), nullable=False)
