@@ -1,14 +1,23 @@
+from app.schemas.fights import Fights, FightsCreate, RoundsEnum, WinningMethodEnum
 from fastapi import APIRouter, Depends, HTTPException, status, Form
-from sqlalchemy.orm import Session
-from app.db.models import FightsDB
-from app.schemas.fights import Fights, FightsCreate, FightsPatch, FightsUpdate, RoundsEnum, WinningMethodEnum
+from app.db.models import FightsDB, FightersDB
 from app.schemas.fighters import DivisionEnum
+from sqlalchemy.orm import Session
 from app.db.session import get_db
+from typing import List, Optional
 
-router = APIRouter(prefix="/fights", tags=["fights"])
+router = APIRouter(prefix="/fights", tags=["Fights"])
 
 
-@router.get("/", response_model=Fights, status_code=status.HTTP_200_OK)
+@router.get("/", response_model=List[Fights], status_code=status.HTTP_200_OK)
+def get_all_fights(db: Session = Depends(get_db)):
+    fights = db.query(FightsDB).all()
+    if not fights:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="no fights found")
+    return fights
+
+
+@router.get("/{id}", response_model=Fights, status_code=status.HTTP_200_OK)
 def get_fight(id: int, db: Session = Depends(get_db)):
     fight = db.query(FightsDB).filter(FightsDB.id == id).first()
     if not fight:
@@ -23,34 +32,43 @@ def get_fight(id: int, db: Session = Depends(get_db)):
 def create_fight(
     rounds: str = Form(...),
     division: str = Form(...),
-    method: str = Form(...),
-    card: int = Form(...),
+    method: str | None = Form(None),
+    card_id: int = Form(...),
     red_corner: int = Form(...),
     blue_corner: int = Form(...),
     favorite: int | None = Form(None),
-    winner: int | None = Form(None),
-    round_finish: int | None = Form(None),
-    time: str | None = Form(None),
+    winner: str | None = Form(None),
+    round_finish: str | None = Form(None),
     db: Session = Depends(get_db),
 ):
+    # first we check that the input ids exists
+    red_fighter = db.query(FightersDB).filter(FightersDB.id == red_corner).first()
+    if not red_fighter:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"fighter with id {red_corner} not found")
+    blue_fighter = db.query(FightersDB).filter(FightersDB.id == blue_corner).first()
+    if not blue_fighter:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"fighter with id {blue_corner} not found")
+
     # validate the data
     try:
+        parsed_method: Optional[WinningMethodEnum] = WinningMethodEnum[method] if method else None
+        parsed_winner: Optional[int] = int(winner) if winner not in (None, "") else None
+        parsed_round_finish: Optional[int] = int(round_finish) if round_finish not in (None, "") else None
         fight_data = FightsCreate(
             rounds=RoundsEnum[rounds],
             division=DivisionEnum[division],
-            method=WinningMethodEnum[method],
-            card=card,
+            method=parsed_method,
+            card=card_id,
             red_corner=red_corner,
             blue_corner=blue_corner,
             favorite=favorite,
-            winner=winner,
-            round_finish=round_finish,
-            time=time,
+            winner=parsed_winner,
+            round_finish=parsed_round_finish,
         )
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=f"Invalid data: {str(e)}")
 
-    # create the instance fot the database
+    # create the instance for the database
     new_fight = FightsDB(
         rounds=fight_data.rounds,
         division=fight_data.division,
@@ -61,57 +79,27 @@ def create_fight(
         favorite=fight_data.favorite,
         winner=fight_data.winner,
         round_finish=fight_data.round_finish,
-        time=fight_data.time,
     )
-    db.add(new_fight)
-    db.commit()
-    db.refresh(new_fight)
-    return new_fight
 
-
-@router.put("/{id}", response_model=Fights, status_code=status.HTTP_200_OK)
-def update_fight(id: int, fight: FightsUpdate, db: Session = Depends(get_db)):
-    db_fight = db.query(FightsDB).filter(FightsDB.id == id).first()
-    if not db_fight:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"fight with id {id} not found")
-
-    # we get the key-val pairs
-    for key, val in fight.model_dump().items():
-        setattr(db_fight, key, val)
-
-    db.commit()
-    db.refresh(db_fight)
-    return db_fight
-
-
-@router.patch("/{id}", response_model=Fights, status_code=status.HTTP_200_OK)
-def update_fields_fight(id: int, fight: FightsPatch, db: Session = Depends(get_db)):
-    db_fight = db.query(FightsDB).filter(FightsDB.id == id).first()
-    if not db_fight:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"fight with the id {id} not found")
-
-    # only the provided fields. and exclude the none values from the response
-    fight_data = fight.model_dump(exclude_unset=True, exclude_none=True)
-
-    # update only the fields that have been changed
-    has_changes = False
-    for key, val in fight_data.items():
-        if getattr(db_fight, key) != val:
-            setattr(db_fight, key, val)
-            has_changes = True
-
-    if has_changes:
+    try:
+        db.add(new_fight)
         db.commit()
-        db.refresh(db_fight)
-
-    return db_fight
+        db.refresh(new_fight)
+        return new_fight
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to create fight: {str(e)}")
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def remove_fight(id: int, db: Session = Depends(get_db)):
-    result = db.query(FightsDB).filter(FightsDB.id == id).delete(synchronize_session=False)
-    if not result:
+def delete_fight(id: int, db: Session = Depends(get_db)):
+    fight = db.query(FightsDB).filter(FightsDB.id == id).first()
+    if not fight:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"fight with id {id} not found")
 
-    db.commit()
-    return None
+    try:
+        db.delete(fight)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to delete fight: {str(e)}")
