@@ -9,10 +9,10 @@ from fastapi import APIRouter, Depends, Form, HTTPException, status
 from app.db.models import FightersDB
 from sqlalchemy.orm import Session
 from app.db.session import get_db
+from typing import List, Optional
 from datetime import datetime
-from typing import List
 
-router = APIRouter(prefix="/fighters", tags=["fighters"])
+router = APIRouter(prefix="/fighters", tags=["Fighters"])
 
 
 @router.get("/", response_model=List[Fighters], status_code=status.HTTP_200_OK)
@@ -42,14 +42,15 @@ def create_fighter(
     birth_date: str = Form(...),
     wins: int = Form(...),
     losses: int = Form(...),
-    draws: int | None = Form(None),
-    no_contest: int | None = Form(None),
-    height: float | None = Form(None),
-    weight: float | None = Form(None),
-    reach: float | None = Form(None),
+    draws: int = Form(...),
+    no_contest: int = Form(...),
+    height: float = Form(...),
+    weight: float = Form(...),
+    reach: str | None = Form(None),
     db: Session = Depends(get_db),
 ):
     try:
+        parsed_reach: Optional[float] = float(reach) if reach not in (None, "") else None  # parse if its provided
         fighter_data = FightersCreate(
             name=name,
             division=DivisionEnum[division],
@@ -60,7 +61,7 @@ def create_fighter(
             no_contest=no_contest,
             height=height,
             weight=weight,
-            reach=reach,
+            reach=parsed_reach,
         )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
