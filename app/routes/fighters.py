@@ -1,11 +1,26 @@
-import datetime
+from app.schemas.fighters import (
+    DivisionEnum,
+    Fighters,
+    FightersCreate,
+    FightersUpdate,
+    FightersPatch,
+)
 from fastapi import APIRouter, Depends, Form, HTTPException, status
-from sqlalchemy.orm import Session
 from app.db.models import FightersDB
+from sqlalchemy.orm import Session
 from app.db.session import get_db
-from app.schemas.fighters import DivisionEnum, Fighters, FightersCreate, FightersUpdate, FightersPatch
+from datetime import datetime
+from typing import List
 
 router = APIRouter(prefix="/fighters", tags=["fighters"])
+
+
+@router.get("/", response_model=List[Fighters], status_code=status.HTTP_200_OK)
+def get_all_fighters(db: Session = Depends(get_db)):
+    fighters = db.query(FightersDB).all()
+    if not fighters:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="no fighters found")
+    return fighters
 
 
 @router.get("/{id}", response_model=Fighters, status_code=status.HTTP_200_OK)
@@ -35,11 +50,10 @@ def create_fighter(
     db: Session = Depends(get_db),
 ):
     try:
-        date_format = "%m/%d/%Y %I:%M %p"
         fighter_data = FightersCreate(
             name=name,
             division=DivisionEnum[division],
-            birth_date=datetime.datetime.strptime(birth_date, date_format),
+            birth_date=datetime.strptime(birth_date, "%Y-%m-%d").date(),
             wins=wins,
             losses=losses,
             draws=draws,
@@ -70,10 +84,13 @@ def create_fighter(
 
 
 @router.put("/{id}", response_model=Fighters, status_code=status.HTTP_200_OK)
-def update_fighter(id: int, fighter=FightersUpdate, db: Session = Depends(get_db)):
+def update_fighter(id: int, fighter: FightersUpdate, db: Session = Depends(get_db)):
     db_fighter = db.query(FightersDB).filter(FightersDB.id == id).first()
     if not db_fighter:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"fighter with id {id} not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"fighter with id {id} not found",
+        )
 
     for key, val in fighter.model_dump().items():
         setattr(db_fighter, key, val)
@@ -84,10 +101,13 @@ def update_fighter(id: int, fighter=FightersUpdate, db: Session = Depends(get_db
 
 
 @router.patch("/{id}", response_model=Fighters, status_code=status.HTTP_200_OK)
-def update_fields_fighter(id: int, fighter=FightersPatch, db: Session = Depends(get_db)):
+def update_fields_fighter(id: int, fighter: FightersPatch, db: Session = Depends(get_db)):
     db_fighter = db.query(FightersDB).filter(FightersDB.id == id).first()
     if not db_fighter:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"fighter with id {id} not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"fighter with id {id} not found",
+        )
 
     fighter_data = fighter.model_dump(exclude_unset=True, exclude_none=True)
     has_changes = False
@@ -106,7 +126,10 @@ def update_fields_fighter(id: int, fighter=FightersPatch, db: Session = Depends(
 def remove_fighter(id: int, db: Session = Depends(get_db)):
     result = db.query(FightersDB).filter(FightersDB.id == id).delete(synchronize_session=False)
     if not result:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"fighter with id {id} not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"fighter with id {id} not found",
+        )
 
     db.commit()
     return None
