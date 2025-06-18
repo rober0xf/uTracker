@@ -1,5 +1,5 @@
 from sqlalchemy.orm import declarative_base, Mapped, mapped_column, relationship
-from sqlalchemy import CheckConstraint, Enum, Integer, String, Date
+from sqlalchemy import CheckConstraint, Enum, Integer, String, Date, Float
 from app.schemas.fights import RoundsEnum, WinningMethodEnum
 from app.schemas.fighters import DivisionEnum
 from sqlalchemy.sql.schema import ForeignKey
@@ -16,16 +16,16 @@ class FightersDB(Base):
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True, index=True)
     division: Mapped[DivisionEnum] = mapped_column(Enum(DivisionEnum), nullable=False)
-    birth_date: Mapped[datetime] = mapped_column(nullable=False)
-    wins: Mapped[int] = mapped_column(nullable=False, default=0)
-    losses: Mapped[int] = mapped_column(nullable=False, default=0)
-    draws: Mapped[Optional[int]] = mapped_column(default=0)
-    no_contest: Mapped[Optional[int]] = mapped_column(default=0)
-    height: Mapped[float] = mapped_column(nullable=False)
-    weight: Mapped[float] = mapped_column(nullable=False)
-    reach: Mapped[Optional[float]] = mapped_column(nullable=True)
+    birth_date: Mapped[date] = mapped_column(Date, nullable=False)
+    wins: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    losses: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    draws: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    no_contest: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    height: Mapped[float] = mapped_column(Float, nullable=False)
+    weight: Mapped[float] = mapped_column(Float, nullable=False)
+    reach: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())  # created when the record its created
-    updated_at: Mapped[Optional[datetime]] = mapped_column(nullable=True)
+    updated_at: Mapped[Optional[datetime]] = mapped_column(onupdate=func.now(), nullable=True)
 
     # constraints
     __table_args__ = (
@@ -35,27 +35,27 @@ class FightersDB(Base):
 
 
 class FightsDB(Base):
-    __tablename__ = 'fights'
+    __tablename__ = "fights"
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     rounds: Mapped[RoundsEnum] = mapped_column(Enum(RoundsEnum), nullable=False)
     division: Mapped[DivisionEnum] = mapped_column(Enum(DivisionEnum), nullable=False)
-    method: Mapped[WinningMethodEnum] = mapped_column(Enum(WinningMethodEnum), nullable=False)
-    card: Mapped[int] = mapped_column(ForeignKey('cards.id'), nullable=False)
-    red_corner: Mapped[int] = mapped_column(ForeignKey('fighters.id'), nullable=False)
-    blue_corner: Mapped[int] = mapped_column(ForeignKey('fighters.id'), nullable=False)
-    favorite: Mapped[Optional[int]] = mapped_column(ForeignKey('fighters.id'), nullable=True)
-    winner: Mapped[Optional[int]] = mapped_column(ForeignKey('fighters.id'), nullable=True)
-    round_finish: Mapped[Optional[int]] = mapped_column(nullable=True)
+    method: Mapped[Optional[WinningMethodEnum]] = mapped_column(Enum(WinningMethodEnum), nullable=True)
+    card: Mapped[int] = mapped_column(ForeignKey("cards.id"), nullable=False)
+    red_corner: Mapped[int] = mapped_column(ForeignKey("fighters.id"), nullable=False)
+    blue_corner: Mapped[int] = mapped_column(ForeignKey("fighters.id"), nullable=False)
+    favorite: Mapped[Optional[int]] = mapped_column(ForeignKey("fighters.id"), nullable=True)
+    winner: Mapped[Optional[int]] = mapped_column(ForeignKey("fighters.id"), nullable=True)
+    round_finish: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     # relationship definition
-    red_fighter = relationship('FightersDB', foreign_keys=[red_corner])
-    blue_fighter = relationship('FightersDB', foreign_keys=[blue_corner])
-    favorite_fighter = relationship('FightersDB', foreign_keys=[favorite])
-    winner_fighter = relationship('FightersDB', foreign_keys=[winner])
+    red_fighter = relationship("FightersDB", foreign_keys=[red_corner])
+    blue_fighter = relationship("FightersDB", foreign_keys=[blue_corner])
+    favorite_fighter = relationship("FightersDB", foreign_keys=[favorite])
+    winner_fighter = relationship("FightersDB", foreign_keys=[winner])
 
     def __repr__(self):
-        return f'<Fight(id={self.id}, red={self.red_corner}, blue={self.blue_corner})>'
+        return f"<Fight(id={self.id}, red={self.red_corner}, blue={self.blue_corner})>"
 
 
 class CardsDB(Base):
