@@ -12,7 +12,7 @@ Base = declarative_base()
 
 
 class FightersDB(Base):
-    __tablename__ = 'fighters'
+    __tablename__ = "fighters"
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True, index=True)
     division: Mapped[DivisionEnum] = mapped_column(Enum(DivisionEnum), nullable=False)
@@ -29,8 +29,8 @@ class FightersDB(Base):
 
     # constraints
     __table_args__ = (
-        CheckConstraint('LENGTH(name) >= 5', name='name_min_length'),
-        CheckConstraint('LENGTH(name) <=50', name='name_max_length'),
+        CheckConstraint("LENGTH(name) >= 5", name="name_min_length"),
+        CheckConstraint("LENGTH(name) <=50", name="name_max_length"),
     )
 
 
