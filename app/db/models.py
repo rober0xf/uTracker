@@ -40,21 +40,19 @@ class FightsDB(Base):
     rounds: Mapped[RoundsEnum] = mapped_column(Enum(RoundsEnum), nullable=False)
     division: Mapped[DivisionEnum] = mapped_column(Enum(DivisionEnum), nullable=False)
     method: Mapped[WinningMethodEnum] = mapped_column(Enum(WinningMethodEnum), nullable=False)
-    card: Mapped[int] = mapped_column(ForeignKey('card.id'), nullable=False)
+    card: Mapped[int] = mapped_column(ForeignKey('cards.id'), nullable=False)
     red_corner: Mapped[int] = mapped_column(ForeignKey('fighters.id'), nullable=False)
     blue_corner: Mapped[int] = mapped_column(ForeignKey('fighters.id'), nullable=False)
     favorite: Mapped[Optional[int]] = mapped_column(ForeignKey('fighters.id'), nullable=True)
     winner: Mapped[Optional[int]] = mapped_column(ForeignKey('fighters.id'), nullable=True)
     round_finish: Mapped[Optional[int]] = mapped_column(nullable=True)
-    time: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     # relationship definition
-    card = relationship('Card', back_populates='fights')
-    red_fighter = relationship('Fighters', foreign_keys=[red_corner])
-    blue_fighter = relationship('Fighters', foreign_keys=[blue_corner])
-    favorite_fighter = relationship('Fighters', foreign_keys=[favorite])
-    winner_fighter = relationship('Fighters', foreign_keys=[winner])
+    red_fighter = relationship('FightersDB', foreign_keys=[red_corner])
+    blue_fighter = relationship('FightersDB', foreign_keys=[blue_corner])
+    favorite_fighter = relationship('FightersDB', foreign_keys=[favorite])
+    winner_fighter = relationship('FightersDB', foreign_keys=[winner])
 
     def __repr__(self):
         return f'<Fight(id={self.id}, red={self.red_corner}, blue={self.blue_corner})>'
@@ -69,7 +67,7 @@ class CardsDB(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     # relationship definition
-    main_event = relationship('Fights', foreign_keys=[main_event_id])
+    main_event = relationship('FightsDB', foreign_keys=[main_event_id])
 
     # constraints
     __table_args__ = (
@@ -86,5 +84,5 @@ class PicksDB(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     # relationship definition
-    fight = relationship('Fights', foreign_keys=[fight_id])
-    winner_picked = relationship('Fighters', foreign_keys=[winner_pick])
+    fight = relationship('FightsDB', foreign_keys=[fight_id])
+    winner_picked = relationship('FightersDB', foreign_keys=[winner_pick])
