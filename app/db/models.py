@@ -1,10 +1,10 @@
-from datetime import date, datetime
 from sqlalchemy.orm import declarative_base, Mapped, mapped_column, relationship
 from sqlalchemy import CheckConstraint, Enum, Integer, String, Date
-from sqlalchemy.sql import func
-from sqlalchemy.sql.schema import ForeignKey
-from app.schemas.fighters import DivisionEnum
 from app.schemas.fights import RoundsEnum, WinningMethodEnum
+from app.schemas.fighters import DivisionEnum
+from sqlalchemy.sql.schema import ForeignKey
+from datetime import date, datetime
+from sqlalchemy.sql import func
 from typing import Optional
 
 
@@ -74,12 +74,12 @@ class CardsDB(Base):
 
 
 class PicksDB(Base):
-    __tablename__ = 'picks'
+    __tablename__ = "picks"
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    fight_id: Mapped[int] = mapped_column(ForeignKey('fights.id'), nullable=False)
-    winner_pick: Mapped[int] = mapped_column(ForeignKey('fighters.id'), nullable=False)
+    fight_id: Mapped[int] = mapped_column(ForeignKey("fights.id"), nullable=False)
+    winner_pick: Mapped[int] = mapped_column(ForeignKey("fighters.id"), nullable=False)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     # relationship definition
-    fight = relationship('FightsDB', foreign_keys=[fight_id])
-    winner_picked = relationship('FightersDB', foreign_keys=[winner_pick])
+    fight = relationship("FightsDB", foreign_keys=[fight_id])
+    winner_picked = relationship("FightersDB", foreign_keys=[winner_pick])
