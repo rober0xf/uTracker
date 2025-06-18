@@ -1,11 +1,16 @@
-from datetime import datetime
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, BeforeValidator
+from datetime import date, datetime
+from typing import Optional, Annotated
+
+
+# handle if empty card number, convert "" to null
+card_number_type = Annotated[Optional[int], BeforeValidator(lambda v: None if isinstance(v, str) and v.strip() == "" else v)]
 
 
 class CardsBase(BaseModel):
     card_name: str = Field(..., min_length=5, max_length=50, description="Name of the card (5-50 chars)")
-    card_date: datetime = Field(..., description="Scheduled date")
-    main_event_id: int = Field(..., gt=0, description="ID from the main event fight")
+    card_date: date = Field(..., description="Scheduled date")
+    card_number: card_number_type = Field(None, description="Optional card number if its numerated", gt=0)
 
     @field_validator("card_name")
     def validate_card_name(cls, name: str) -> str:
@@ -16,43 +21,25 @@ class CardsBase(BaseModel):
         return name
 
     @field_validator("card_date")
-    def validate_card_date(cls, t: datetime) -> datetime:
-        if t < datetime.now():
+    def validate_card_date(cls, t: date) -> date:
+        if t < date.today():
             raise ValueError("Card date cannot be in the past")
         return t
 
-
-class Cards(CardsBase):
-    id: int = Field(..., gt=0, description="Card id")
-    created_at: datetime | None = Field(None, description="Set by the datebase (do not provide manually)", validate_default=True)
-
-    class Config:
-        from_attributes = True
+    @field_validator("card_number")
+    def validate_card_number(cls, v: Optional[int]) -> Optional[int]:
+        if v is not None and v <= 0:
+            raise ValueError("Card number must be positive if its numerated")
+        return v
 
 
 class CardsCreate(CardsBase):
     pass
 
 
-class CardsUpdate(BaseModel):
-    card_name: str | None = Field(None, min_length=5, max_length=50)
-    card_date: datetime | None = None
-    main_event_id: int | None = Field(None, gt=0)
+class Cards(CardsBase):
+    id: int = Field(..., gt=0)
+    created_at: datetime | None = Field(None, description="Set by the datebase (do not provide manually)", validate_default=True)
 
-    @field_validator("card_name")
-    def validate_card_name(cls, name: str) -> str:
-        name = name.strip()  # clean the whitespaces
-        name_len = len(name)
-        if not (5 <= name_len <= 50):
-            raise ValueError(f"the card name must be between 5 and 50 chars long, current: {name_len}.")
-        return name
-
-    @field_validator("card_date")
-    def validate_card_date(cls, t: datetime) -> datetime:
-        if t < datetime.now():
-            raise ValueError("Card date cannot be in the past")
-        return t
-
-
-class CardsPatch(CardsUpdate):
-    pass
+    class Config:
+        from_attributes = True

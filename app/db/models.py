@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import date, datetime
 from sqlalchemy.orm import declarative_base, Mapped, mapped_column, relationship
-from sqlalchemy import CheckConstraint, Enum, String
+from sqlalchemy import CheckConstraint, Enum, Integer, String, Date
 from sqlalchemy.sql import func
 from sqlalchemy.sql.schema import ForeignKey
 from app.schemas.fighters import DivisionEnum
@@ -59,20 +59,17 @@ class FightsDB(Base):
 
 
 class CardsDB(Base):
-    __tablename__ = 'cards'
+    __tablename__ = "cards"
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     card_name: Mapped[str] = mapped_column(String(50), nullable=False)
-    card_date: Mapped[datetime] = mapped_column(nullable=False)
-    main_event_id: Mapped[int] = mapped_column(ForeignKey('fights.id'), nullable=False)
+    card_date: Mapped[date] = mapped_column(Date, nullable=False, unique=True)
+    card_number: Mapped[int] = mapped_column(Integer, nullable=True, unique=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
-
-    # relationship definition
-    main_event = relationship('FightsDB', foreign_keys=[main_event_id])
 
     # constraints
     __table_args__ = (
-        CheckConstraint('LENGTH(card_name) >= 5', name='card_name_min_length'),
-        CheckConstraint('LENGTH(card_name) <=50', name='card_name_max_length'),
+        CheckConstraint("LENGTH(card_name) >= 5", name="card_name_min_length"),
+        CheckConstraint("LENGTH(card_name) <=50", name="card_name_max_length"),
     )
 
 
