@@ -1,22 +1,28 @@
+from datetime import datetime
+
+from fastapi import APIRouter, Depends, Form, HTTPException, status
+from sqlalchemy.orm import Session
+
+from app.db.models import FightersDB
+from app.db.session import get_db
 from app.schemas.fighters import (
     DivisionEnum,
     Fighters,
     FightersCreate,
-    FightersUpdate,
     FightersPatch,
+    FightersUpdate,
 )
-from fastapi import APIRouter, Depends, Form, HTTPException, status
-from app.db.models import FightersDB
-from sqlalchemy.orm import Session
-from app.db.session import get_db
-from typing import List, Optional
-from datetime import datetime
 
 router = APIRouter(prefix="/fighters", tags=["Fighters"])
 
+# modular fuction paremeters
+db_dependency = Depends(get_db)
+required_form = Form(...)
+optional_form = Form(None)
 
-@router.get("/", response_model=List[Fighters], status_code=status.HTTP_200_OK)
-def get_all_fighters(db: Session = Depends(get_db)):
+
+@router.get("/", response_model=list[Fighters], status_code=status.HTTP_200_OK)
+def get_all_fighters(db: Session = db_dependency):
     fighters = db.query(FightersDB).all()
     if not fighters:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="no fighters found")
@@ -24,7 +30,7 @@ def get_all_fighters(db: Session = Depends(get_db)):
 
 
 @router.get("/{id}", response_model=Fighters, status_code=status.HTTP_200_OK)
-def get_fighter(id: int, db: Session = Depends(get_db)):
+def get_fighter(id: int, db: Session = db_dependency):
     fighter = db.query(FightersDB).filter(FightersDB.id == id).first()
     if not fighter:
         raise HTTPException(
@@ -37,20 +43,20 @@ def get_fighter(id: int, db: Session = Depends(get_db)):
 
 @router.post("/", response_model=Fighters, status_code=status.HTTP_201_CREATED)
 def create_fighter(
-    name: str = Form(...),
-    division: str = Form(...),
-    birth_date: str = Form(...),
-    wins: int = Form(...),
-    losses: int = Form(...),
-    draws: int = Form(...),
-    no_contest: int = Form(...),
-    height: float = Form(...),
-    weight: float = Form(...),
-    reach: str | None = Form(None),
-    db: Session = Depends(get_db),
+    name: str = required_form,
+    division: str = required_form,
+    birth_date: str = required_form,
+    wins: int = required_form,
+    losses: int = required_form,
+    draws: int = required_form,
+    no_contest: int = required_form,
+    height: float = required_form,
+    weight: float = required_form,
+    reach: str | None = optional_form,
+    db: Session = db_dependency,
 ):
     try:
-        parsed_reach: Optional[float] = float(reach) if reach not in (None, "") else None  # parse if its provided
+        parsed_reach: float | None = float(reach) if reach not in (None, "") else None  # parse if its provided
         fighter_data = FightersCreate(
             name=name,
             division=DivisionEnum[division],
@@ -64,7 +70,7 @@ def create_fighter(
             reach=parsed_reach,
         )
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)) from None
 
     new_figher = FightersDB(
         name=fighter_data.name,
@@ -85,7 +91,7 @@ def create_fighter(
 
 
 @router.put("/{id}", response_model=Fighters, status_code=status.HTTP_200_OK)
-def update_fighter(id: int, fighter: FightersUpdate, db: Session = Depends(get_db)):
+def update_fighter(id: int, fighter: FightersUpdate, db: Session = db_dependency):
     db_fighter = db.query(FightersDB).filter(FightersDB.id == id).first()
     if not db_fighter:
         raise HTTPException(
@@ -102,7 +108,7 @@ def update_fighter(id: int, fighter: FightersUpdate, db: Session = Depends(get_d
 
 
 @router.patch("/{id}", response_model=Fighters, status_code=status.HTTP_200_OK)
-def update_fields_fighter(id: int, fighter: FightersPatch, db: Session = Depends(get_db)):
+def update_fields_fighter(id: int, fighter: FightersPatch, db: Session = db_dependency):
     db_fighter = db.query(FightersDB).filter(FightersDB.id == id).first()
     if not db_fighter:
         raise HTTPException(
@@ -124,7 +130,7 @@ def update_fields_fighter(id: int, fighter: FightersPatch, db: Session = Depends
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def remove_fighter(id: int, db: Session = Depends(get_db)):
+def remove_fighter(id: int, db: Session = db_dependency):
     result = db.query(FightersDB).filter(FightersDB.id == id).delete(synchronize_session=False)
     if not result:
         raise HTTPException(
