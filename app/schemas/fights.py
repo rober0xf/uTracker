@@ -1,8 +1,10 @@
-from app.schemas.fighters import DivisionEnum
-from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
 from enum import Enum
+
+from pydantic import BaseModel, Field
+
+from app.schemas.fighters import DivisionEnum
 
 
 class RoundsEnum(int, Enum):
@@ -24,13 +26,13 @@ class WinningMethodEnum(str, Enum):
 class FightsBase(BaseModel):
     rounds: RoundsEnum = Field(..., description="Number of rounds (3 or 5)")
     division: DivisionEnum = Field(..., description="Weight class")
-    method: Optional[WinningMethodEnum] = Field(None, description="Winning method")
+    method: WinningMethodEnum | None = Field(None, description="Winning method")
     card: int = Field(..., gt=0, description="Event card id")
     red_corner: int = Field(..., gt=0, description="Fighter id (red corner)")
     blue_corner: int = Field(..., gt=0, description="Fighter id (blue corner)")
-    favorite: Optional[int] = Field(None, gt=0, description="Fighter id that is favored in bettings")
-    winner: Optional[int] = Field(None, gt=0, description="Fighter id of the winner")
-    round_finish: Optional[int] = Field(None, gt=1, le=5, description="Round of the finish")
+    favorite: int | None = Field(None, gt=0, description="Fighter id that is favored in bettings")
+    winner: int | None = Field(None, gt=0, description="Fighter id of the winner")
+    round_finish: int | None = Field(None, gt=1, le=5, description="Round of the finish")
 
 
 # post method

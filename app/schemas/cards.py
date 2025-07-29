@@ -1,10 +1,10 @@
-from pydantic import BaseModel, Field, field_validator, BeforeValidator
 from datetime import date, datetime
-from typing import Optional, Annotated
+from typing import Annotated
 
+from pydantic import BaseModel, BeforeValidator, Field, field_validator
 
 # handle if empty card number, convert "" to null
-card_number_type = Annotated[Optional[int], BeforeValidator(lambda v: None if isinstance(v, str) and v.strip() == "" else v)]
+card_number_type = Annotated[int | None, BeforeValidator(lambda v: None if isinstance(v, str) and v.strip() == "" else v)]
 
 
 class CardsBase(BaseModel):
@@ -27,7 +27,7 @@ class CardsBase(BaseModel):
         return t
 
     @field_validator("card_number")
-    def validate_card_number(cls, v: Optional[int]) -> Optional[int]:
+    def validate_card_number(cls, v: int | None) -> int | None:
         if v is not None and v <= 0:
             raise ValueError("Card number must be positive if its numerated")
         return v

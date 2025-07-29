@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from enum import Enum
-from pydantic import BaseModel, field_validator, Field
+
+from pydantic import BaseModel, Field, field_validator
 
 
 # use str as a parameter so it can be handled as a string
