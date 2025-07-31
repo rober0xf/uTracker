@@ -12,6 +12,7 @@ from app.schemas.fighters import (
     FightersPatch,
     FightersUpdate,
 )
+from app.services.map_features import create_fighter_with_features
 
 router = APIRouter(prefix="/fighters", tags=["Fighters"])
 
@@ -140,3 +141,8 @@ def remove_fighter(id: int, db: Session = db_dependency):
 
     db.commit()
     return None
+
+
+@router.post("/features")
+def create_features_fighter(fighter: FightersCreate, db: Session = db_dependency):
+    return create_fighter_with_features(db, fighter)
