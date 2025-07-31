@@ -20,13 +20,9 @@ class FighterFeatures(Base):
     avg_sub_att: Mapped[float] = mapped_column(Float, default=0.0)
     avg_td_landed: Mapped[float] = mapped_column(Float, default=0.0)
     avg_td_pct: Mapped[float] = mapped_column(Float, default=0.0)
-    longest_win_streak: Mapped[int] = mapped_column(Integer, default=0)
-    total_rounds_fought: Mapped[int] = mapped_column(Integer, default=0)
-    total_title_bouts: Mapped[int] = mapped_column(Integer, default=0)
     wins_by_ko: Mapped[int] = mapped_column(Integer, default=0)
     wins_by_submission: Mapped[int] = mapped_column(Integer, default=0)
-    wins_by_decision: Mapped[int] = mapped_column(Integer, default=0)
 
     updated_at: Mapped[datetime] = mapped_column(DateTime, onupdate=func.now(), server_default=func.now())
 
-    fighter = relationship("FighterDB", back_populates="features")
+    fighter = relationship("FightersDB", back_populates="features")
