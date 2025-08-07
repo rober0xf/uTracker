@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class PicksBase(BaseModel):
@@ -10,11 +10,9 @@ class PicksBase(BaseModel):
 
 # general model. also response model
 class Picks(PicksBase):
+    model_config = ConfigDict(extra="ignore", from_attributes=True)
     id: int = Field(..., gt=0, description="Pick id")
     created_at: datetime | None = Field(None, description="Set by the datebase (do not provide manually)", validate_default=True)
-
-    class Config:
-        from_attributes = True
 
 
 class PicksCreate(PicksBase):

@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas.fighters import DivisionEnum
 
@@ -41,8 +41,6 @@ class FightsCreate(FightsBase):
 
 # general model with full fields. also the returning model
 class Fights(FightsBase):
+    model_config = ConfigDict(extra="ignore", from_attributes=True)
     id: int = Field(..., gt=0, description="Unique fight id")
     created_at: datetime = Field(default_factory=datetime.now)
-
-    class Config:
-        from_attributes = True

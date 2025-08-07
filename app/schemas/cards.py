@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Annotated, Any
 
-from pydantic import BaseModel, BeforeValidator, Field, field_validator
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, field_validator
 
 # handle if empty card number, convert "" to null
 card_number_type = Annotated[int | None, BeforeValidator(lambda v: None if isinstance(v, str) and v.strip() == "" else v)]
@@ -61,8 +61,6 @@ class CardsResponse(CardsBase):
 
 
 class Cards(CardsBase):
+    model_config = ConfigDict(extra="ignore", from_attributes=True)
     id: int = Field(..., gt=0)
     created_at: datetime | None = Field(None, description="Set by the datebase (do not provide manually)", validate_default=True)
-
-    class Config:
-        from_attributes = True
