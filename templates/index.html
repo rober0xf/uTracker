@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="https://unpkg.com/htmx.org"></script>
+</head>
+
+<body>
+    <h1>Fight Prediction</h1>
+    <form hx-post="/predict" hx-target="#result" hx-swap="innerHTML">
+        <input type="text" name="fighter_a" placeholder="A">
+        <input type="text" name="fighter_b" placeholder="B">
+        <button type="submit">Predict</button>
+    </form>
+    <div id="result"></div>
+</body>
+
+</html>
