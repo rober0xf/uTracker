@@ -1,9 +1,6 @@
 from sqlalchemy.orm import Session
 
-from app.db.features import FighterFeatures
-from app.db.models import FightersDB
-
-from .api_services import get_external_fighter_features
+from app.db.models import FighterFeatures
 
 
 def to_float(value):
@@ -32,27 +29,6 @@ def map_api_to_features(api_data):
         "wins_by_ko": int(win_stats.get("Wins by Knockout", 0)),
         "wins_by_submission": int(win_stats.get("Wins by Submission", 0)),
     }
-
-
-def create_fighter_with_features(session: Session, fighter_data):
-    if hasattr(fighter_data, "model_dump"):
-        fighter_dict = fighter_data.model_dump()
-    elif hasattr(fighter_data, "dict"):
-        fighter_dict = fighter_data.dict()
-    elif isinstance(fighter_data, dict):
-        fighter_dict = fighter_data
-    else:
-        raise ValueError("fighter_data debe ser un dict o un modelo Pydantic")
-
-    fighter = FightersDB(**fighter_dict)
-    session.add(fighter)
-    session.flush()
-
-    api_data = get_external_fighter_features(fighter.name)
-    if api_data:
-        update_fighter_features(session, fighter.id, api_data)
-    session.commit()
-    return fighter
 
 
 def update_fighter_features(session: Session, fighter_id: int, api_data: dict):

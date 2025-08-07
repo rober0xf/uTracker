@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.db.models import FightersDB
 from app.db.session import get_db
-from app.schemas.fighters import DivisionEnum, FightersCreate, FightersPatch, FightersUpdate
+from app.schemas.fighters import FighterForm, FightersBase, FightersUpdate
 from app.services.api_services import get_external_fighter_features
 from app.services.map_features import update_fighter_features
 
@@ -28,77 +28,67 @@ def get_fighter_service(id: int, db: Session = db_dependency):
     return fighter
 
 
-def create_fighter_service(
-    name: str = required_form,
-    division: str = required_form,
-    birth_date: str = required_form,
-    wins: int = required_form,
-    losses: int = required_form,
-    draws: int = required_form,
-    no_contest: int = required_form,
-    height: float = required_form,
-    weight: float = required_form,
-    reach: str | None = optional_form,
-    db: Session = db_dependency,
-):
+def create_fighter_service(fighter_form: FighterForm, db: Session = db_dependency):
     try:
-        fighter_data = FightersCreate(
-            name=name,
-            division=DivisionEnum(division),
-            birth_date=datetime.strptime(birth_date, "%Y-%m-%d").date(),
-            wins=wins,
-            losses=losses,
-            draws=draws,
-            no_contest=no_contest,
-            height=height,
-            weight=weight,
-            reach=float(reach) if reach not in (None, "") else None,
-        )
-    except (ValueError, KeyError) as e:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=f"invalid input: {str(e)}") from None
+        # fighter_data = fighter_form.to_fighters_base_data()  # handle the data conversion and validation with the class method
+        validated_fighter = FightersBase(**fighter_form.model_dump())  # validate the model
 
-    new_figher = FightersDB(**fighter_data.model_dump())
-    db.add(new_figher)
-    db.commit()
-    db.refresh(new_figher)
-    return new_figher
+        new_fighter = FightersDB(**validated_fighter.model_dump())
+        db.add(new_fighter)
+        db.commit()
+        db.refresh(new_fighter)
+        return new_fighter
+
+    except (ValueError, TypeError) as e:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=f"invalid input: {str(e)}") from None
 
 
 def update_fighter_service(id: int, fighter: FightersUpdate, db: Session = db_dependency):
-    db_fighter = db.query(FightersDB).filter(FightersDB.id == id).first()
-    if not db_fighter:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"fighter with id {id} not found",
-        )
+    try:
+        db_fighter = db.query(FightersDB).filter(FightersDB.id == id).first()
+        if not db_fighter:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"fighter with id {id} not found",
+            )
 
-    for key, val in fighter.model_dump().items():
-        setattr(db_fighter, key, val)
+        # get the updated data
+        update_data = fighter.model_dump(exclude_unset=True, exclude_none=True)
+        if not update_data:
+            return db_fighter
 
-    db.commit()
-    db.refresh(db_fighter)
-    return db_fighter
+        # validata the data
+        current_data = {
+            "name": db_fighter.name,
+            "division": db_fighter.division,
+            "birth_date": db_fighter.birth_date,
+            "wins": db_fighter.wins,
+            "losses": db_fighter.losses,
+            "draws": db_fighter.draws,
+            "no_contest": db_fighter.no_contest,
+            "height": db_fighter.height,
+            "weight": db_fighter.weight,
+            "reach": db_fighter.reach,
+        }
+        current_data.update(update_data)  # apply the updates
 
+        FightersBase(**current_data)  # raise error if data is invalid
 
-def update_fields_fighter_service(id: int, fighter: FightersPatch, db: Session = db_dependency):
-    db_fighter = db.query(FightersDB).filter(FightersDB.id == id).first()
-    if not db_fighter:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"fighter with id {id} not found",
-        )
+        changes_made = []
+        for field_name, new_value in update_data.items():
+            old_value = getattr(db_fighter, field_name)
+            if old_value != new_value:
+                setattr(db_fighter, field_name, new_value)
+                changes_made.append(new_value)
 
-    fighter_data = fighter.model_dump(exclude_unset=True, exclude_none=True)
-    has_changes = False
-    for key, val in fighter_data.items():
-        if getattr(db_fighter, key) != val:
-            setattr(db_fighter, key, val)
-            has_changes = True
+        if changes_made:
+            db_fighter.updated_at = datetime.now()
+            db.commit()
+            db.refresh(db_fighter)
+        return db_fighter
 
-    if has_changes:
-        db.commit()
-        db.refresh(db_fighter)
-    return db_fighter
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="error updating the fighter") from None
 
 
 def remove_fighter_service(id: int, db: Session = db_dependency):

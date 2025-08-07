@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Form, status
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.schemas.fighters import FighterForm, Fighters, FightersCreate, FightersPatch, FightersUpdate
+from app.schemas.fighters import FighterForm, Fighters, FightersUpdate
 
 from .services import (
     create_fighter_service,
@@ -10,7 +10,6 @@ from .services import (
     get_all_fighters_service,
     get_fighter_service,
     remove_fighter_service,
-    update_fields_fighter_service,
     update_fighter_service,
 )
 
@@ -21,11 +20,11 @@ def fighter_form(
     birth_date: str = Form(...),
     wins: int = Form(...),
     losses: int = Form(...),
-    draws: int = Form(...),
-    no_contest: int = Form(...),
+    draws: int | None = Form(None),
+    no_contest: int | None = Form(None),
     height: float = Form(...),
     weight: float = Form(...),
-    reach: str | None = Form(None),
+    reach: float | None = Form(None),
 ) -> FighterForm:
     return FighterForm(
         name=name,
@@ -33,11 +32,11 @@ def fighter_form(
         birth_date=birth_date,
         wins=wins,
         losses=losses,
-        draws=draws,
-        no_contest=no_contest,
+        draws=int(draws) if draws else None,
+        no_contest=int(no_contest) if no_contest else None,
         height=height,
         weight=weight,
-        reach=reach,
+        reach=float(reach) if reach else None,
     )
 
 
@@ -62,7 +61,11 @@ def get_fighter(id: int, db: Session = db_dependency):
 
 @router.post("/", response_model=Fighters, status_code=status.HTTP_201_CREATED)
 def create_fighter(db: Session = db_dependency, form_data: FighterForm = fighter_form_dep):
-    return create_fighter_service(**form_data.model_dump(), db=db)
+    data = create_fighter_service(form_data, db=db)
+    print(data.draws)
+    print(data.no_contest)
+    print(data.reach)
+    return data
 
 
 @router.put("/{id}", response_model=Fighters, status_code=status.HTTP_200_OK)
@@ -71,8 +74,8 @@ def update_fighter(id: int, fighter: FightersUpdate, db: Session = db_dependency
 
 
 @router.patch("/{id}", response_model=Fighters, status_code=status.HTTP_200_OK)
-def update_fields_fighter(id: int, fighter: FightersPatch, db: Session = db_dependency):
-    return update_fields_fighter_service(id, fighter, db)
+def update_fields_fighter(id: int, fighter: FightersUpdate, db: Session = db_dependency):
+    return update_fighter_service(id, fighter, db)
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -81,5 +84,5 @@ def remove_fighter(id: int, db: Session = db_dependency):
 
 
 @router.post("/features")
-def create_features_fighter(fighter: FightersCreate, db: Session = db_dependency):
+def create_features_fighter(fighter: FighterForm, db: Session = db_dependency):
     return create_fighter_with_features_service(fighter, db)
