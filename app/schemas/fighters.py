@@ -27,7 +27,7 @@ class FightersBase(BaseModel):
     no_contest: int | None = Field(None)
     height: float = Field(gt=0, le=3.0, description="Height in meters (0 < x <= 3)")
     weight: float = Field(gt=0, le=120, description="Weight in kg (0 < x <= 120)")
-    reach: int | None = Field(None, gt=0, le=225, description="Reach in cm (0 < x <= 225)")
+    reach: float | None = Field(None, gt=0, le=225, description="Reach in cm (0 < x <= 225)")
 
     @field_validator("name")
     @classmethod
@@ -55,10 +55,10 @@ class FightersBase(BaseModel):
 
 # general schema. also the response model
 class Fighters(FightersBase):
-    model_config = ConfigDict(extra="ignore")
+    model_config = ConfigDict(extra="ignore", from_attributes=True)
 
     id: int = Field(..., gt=0, description="Fighter id")
-    created_at: datetime = Field(default_factory=datetime.now, description="When record was created")
+    created_at: datetime = Field(..., description="When record was created")
     updated_at: datetime | None = Field(None, description="When stats were updated")
 
 
@@ -82,15 +82,15 @@ class FighterForm(BaseModel):
         try:
             data = {
                 "name": self.name.strip() if self.name else "",
-                "division": self.division.strip() if self.division else "",
+                "division": DivisionEnum(self.division.strip()) if self.division else None,
                 "birth_date": date.fromisoformat(self.birth_date.strip()) if self.birth_date else None,
                 "wins": self.wins,
                 "losses": self.losses,
                 "height": self.height,
                 "weight": self.weight,
-                "draws": int(self.draws) if self.draws is not None or self.draws != "" else None,
-                "no_contest": int(self.no_contest) if self.no_contest is not None or self.no_contest != "" else None,
-                "reach": float(self.reach) if self.reach is not None or self.reach != "" else None,
+                "draws": int(self.draws) if self.draws is not None and self.draws != "" else None,
+                "no_contest": int(self.no_contest) if self.no_contest is not None and self.no_contest != "" else None,
+                "reach": float(self.reach) if self.reach is not None and self.reach != "" else None,
             }
 
             return data

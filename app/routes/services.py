@@ -30,8 +30,8 @@ def get_fighter_service(id: int, db: Session = db_dependency):
 
 def create_fighter_service(fighter_form: FighterForm, db: Session = db_dependency):
     try:
-        # fighter_data = fighter_form.to_fighters_base_data()  # handle the data conversion and validation with the class method
-        validated_fighter = FightersBase(**fighter_form.model_dump())  # validate the model
+        fighter_data = fighter_form.to_fighters_base_data()  # handle the data conversion and validation with the class method
+        validated_fighter = FightersBase(**fighter_data)  # validate the model
 
         new_fighter = FightersDB(**validated_fighter.model_dump())
         db.add(new_fighter)

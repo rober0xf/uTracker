@@ -20,11 +20,11 @@ def fighter_form(
     birth_date: str = Form(...),
     wins: int = Form(...),
     losses: int = Form(...),
-    draws: int | None = Form(None),
-    no_contest: int | None = Form(None),
+    draws: str = Form(""),
+    no_contest: str = Form(""),
     height: float = Form(...),
     weight: float = Form(...),
-    reach: float | None = Form(None),
+    reach: str = Form(""),
 ) -> FighterForm:
     return FighterForm(
         name=name,
@@ -32,11 +32,11 @@ def fighter_form(
         birth_date=birth_date,
         wins=wins,
         losses=losses,
-        draws=int(draws) if draws else None,
-        no_contest=int(no_contest) if no_contest else None,
+        draws=None if draws == "" else int(draws),
+        no_contest=None if no_contest == "" else int(no_contest),
         height=height,
         weight=weight,
-        reach=float(reach) if reach else None,
+        reach=None if reach == "" else float(reach),
     )
 
 
@@ -62,9 +62,6 @@ def get_fighter(id: int, db: Session = db_dependency):
 @router.post("/", response_model=Fighters, status_code=status.HTTP_201_CREATED)
 def create_fighter(db: Session = db_dependency, form_data: FighterForm = fighter_form_dep):
     data = create_fighter_service(form_data, db=db)
-    print(data.draws)
-    print(data.no_contest)
-    print(data.reach)
     return data
 
 
