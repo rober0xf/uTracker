@@ -1,0 +1,23 @@
+services:
+  web:
+    build: .
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${POSTGRES_DATABASE_URL}
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+
+  db:
+    image: postgres:15
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: utracker
+    ports:
+      - "5432:5432"
