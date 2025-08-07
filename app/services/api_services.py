@@ -1,34 +1,25 @@
-from http import HTTPStatus
-
-import requests
-from fastapi.exceptions import HTTPException
+import httpx
 
 from app.db.settings import settings_api
 
 
-def get_external_fighter_features(name: str):
+async def get_external_fighter_features(name: str) -> dict | None:
     api_key = settings_api.rapidapi_api_key
     if not api_key:
-        raise HTTPException(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, detail="api key is not set")
+        return None
 
     url = "https://mma-stats.p.rapidapi.com/search"
-    querystring = {"name": name}
     headers = {"x-rapidapi-key": api_key, "x-rapidapi-host": "mma-stats.p.rapidapi.com"}
 
     try:
-        response = requests.get(url, headers=headers, params=querystring, timeout=10)
-    except requests.RequestException:
-        raise HTTPException(status_code=HTTPStatus.BAD_GATEWAY, detail="error while fetching external api request") from None
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(url, headers=headers, params={"name": name})
+            if response.status_code != 200:
+                return None
 
-    if response.status_code != HTTPStatus.OK:
-        raise HTTPException(status_code=HTTPStatus.BAD_GATEWAY, detail=f"external api error. status: {response.status_code}")
+            data = response.json()
+            return data[0] if isinstance(data, list) and data else None  # [0] first appearance
 
-    try:
-        data = response.json()
-    except ValueError:
-        raise HTTPException(status_code=HTTPStatus.BAD_GATEWAY, detail="invalid json response from external api") from None
-
-    if not isinstance(data, list) or not data:  # the api response is in a list
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="fighter not found from the external api")
-
-    return data[0]  # first appearance
+    except Exception as e:
+        print(f"error fetching external data for {name}: {str(e)}")
+        return None

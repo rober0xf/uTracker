@@ -103,22 +103,31 @@ def remove_fighter_service(id: int, db: Session = db_dependency):
     return None
 
 
-def create_fighter_with_features_service(fighter_data, session: Session):
-    if hasattr(fighter_data, "model_dump"):
-        fighter_dict = fighter_data.model_dump()
-    elif hasattr(fighter_data, "dict"):
-        fighter_dict = fighter_data.dict()
-    elif isinstance(fighter_data, dict):
-        fighter_dict = fighter_data
-    else:
-        raise ValueError("fighter_data must be a dict or a pydantic model")
+async def create_fighter_with_features_service(fighter_form: FighterForm, session: Session):
+    try:
+        fighter_data = fighter_form.to_fighters_base_data()
+        validated_fighter = FightersBase(**fighter_data)
 
-    fighter = FightersDB(**fighter_dict)
-    session.add(fighter)
-    session.flush()
+        fighter = FightersDB(**validated_fighter.model_dump())
+        session.add(fighter)
+        session.flush()
 
-    api_data = get_external_fighter_features(fighter.name)
-    if api_data:
-        update_fighter_features(session, fighter.id, api_data)
-    session.commit()
-    return fighter
+        api_data = None
+        try:
+            api_data = await get_external_fighter_features(fighter.name)
+        except Exception as e:
+            print(f"could not fetch external data for {fighter.name}:{str(e)}")
+
+        if api_data:
+            try:
+                update_fighter_features(session, fighter.id, api_data)
+            except Exception as e:
+                print(f"could not update features: {str(e)}")
+
+        session.commit()
+        session.refresh(fighter)
+        return fighter
+
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"internal error: {str(e)}") from None

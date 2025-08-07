@@ -81,5 +81,5 @@ def remove_fighter(id: int, db: Session = db_dependency):
 
 
 @router.post("/features")
-def create_features_fighter(fighter: FighterForm, db: Session = db_dependency):
-    return create_fighter_with_features_service(fighter, db)
+async def create_features_fighter(fighter: FighterForm, db: Session = db_dependency):
+    return await create_fighter_with_features_service(fighter, db)
