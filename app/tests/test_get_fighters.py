@@ -6,8 +6,6 @@ from fastapi.testclient import TestClient
 from app.db.models import FightersDB
 from app.schemas.fighters import Fighters
 
-""" integration test"""
-
 
 # test returning data from database.
 def test_get_all_fighters(client: TestClient, db_session):
