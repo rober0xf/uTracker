@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
@@ -7,7 +7,7 @@ from app.db.models import FightersDB
 from app.schemas.fighters import Fighters
 
 
-# test returning data from database
+# test returning data from database.
 def test_get_all_fighters(client: TestClient, db_session):
     mock_fighters = [
         {
@@ -22,6 +22,7 @@ def test_get_all_fighters(client: TestClient, db_session):
             "height": 1.7,
             "weight": 66.0,
             "reach": 175,
+            "created_at": datetime.now(),
         },
         {
             "id": 2,
@@ -35,12 +36,13 @@ def test_get_all_fighters(client: TestClient, db_session):
             "height": 1.85,
             "weight": 83.0,
             "reach": 193,
+            "created_at": datetime.now(),
         },
     ]
     for fighter_data in mock_fighters:
         fighter = FightersDB(**fighter_data)
         db_session.add(fighter)
-    db_session.commit()
+    db_session.flush()
 
     response = client.get("/fighters/")
     assert response.status_code == 200
@@ -56,7 +58,7 @@ def test_get_all_fighters(client: TestClient, db_session):
         assert any(df["name"] == f["name"] for df in data)
 
 
-# test returning fighter by id from the database
+# test returning fighter by id from the database.
 def test_get_fighter(client: TestClient, db_session):
     mock_fighter = {
         "id": 69,
@@ -72,7 +74,7 @@ def test_get_fighter(client: TestClient, db_session):
     }
     fighter = FightersDB(**mock_fighter)
     db_session.add(fighter)
-    db_session.commit()
+    db_session.flush()
 
     response = client.get(f"/fighters/{mock_fighter['id']}")
     assert response.status_code == 200
@@ -82,6 +84,9 @@ def test_get_fighter(client: TestClient, db_session):
 
     assert data["name"] == mock_fighter["name"]
     assert data["id"] == mock_fighter["id"]
+
+
+""" unit test"""
 
 
 # test when there are no fighters. using mock

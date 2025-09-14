@@ -13,15 +13,10 @@ dependencies = [
     "sqlalchemy>=2.0.40",
 ]
 
-[tool.black]
-line-length = 160
-target-version = ['py313']  
-skip-string-normalization = false  
-exclude = '''
-/(
-    \.git
-  | \.venv
-  | build
-  | dist
-)/
-'''
+[tool.basedpyright]
+pythonVersion = "3.13"
+pythonPlatform = "Linux"
+typeCheckingMode = "basic"
+reportMissingImports = "error"
+reportMissingTypeStubs = false
+reportAny = "none"
