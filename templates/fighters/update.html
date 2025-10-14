@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Update Fighter</h1>
+
+<form method="POST" action="{{ url_for('update_fighter', id=fighter.id) }}">
+    <!-- division -->
+    <div class="form-group">
+        <label for="division">Division:</label>
+        <select id="division" name="division">
+            <option value="">Select a division</option>
+            <option value="flyweight">Flyweight</option>
+            <option value="bantamweight">Bantamweight</option>
+            <option value="featherweight">Featherweight</option>
+            <option value="lightweight">Lightweight</option>
+            <option value="welterweight">Welterweight</option>
+            <option value="middleweight">Middleweight</option>
+            <option value="light_heavyweight">Light Heavyweight</option>
+            <option value="heavyweight">Heavyweight</option>
+        </select>
+    </div>
+
+    <!-- wins -->
+    <div class="form-group">
+        <label for="wins">Wins:</label>
+        <input type="number" id="wins" name="wins" min="0">
+    </div>
+
+    <!-- losses -->
+    <div class="form-group">
+        <label for="losses">Losses:</label>
+        <input type="number" id="losses" name="losses" min="0">
+    </div>
+
+    <!-- draws -->
+    <div class="form-group">
+        <label for="draws">Draws:</label>
+        <input type="number" id="draws" name="draws" min="0">
+    </div>
+
+    <!-- no contest -->
+    <div class="form-group">
+        <label for="no_contest">No Contest:</label>
+        <input type="number" id="no_contest" name="no_contest" min="0">
+    </div>
+
+    <!-- height -->
+    <div class="form-group">
+        <label for="height">Height:</label>
+        <input type="number" id="height" name="height" min="0" step="0.01">
+    </div>
+
+    <!-- weight -->
+    <div class="form-group">
+        <label for="weight">Weight:</label>
+        <input type="number" id="weight" name="weight" min="0" max="121" step="0.1">
+    </div>
+
+    <!-- reach -->
+    <div class="form-group">
+        <label for="reach">Reach:</label>
+        <input type="number" id="reach" name="reach" min="0" step="0.01">
+    </div>
+    
+    <button type="submit">Update Fighter</button>
+</form>
+
+<style>
+    form {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    
+    input, select {
+        width: 100%;
+        padding: 8px;
+        box-sizing: border-box;
+    }
+    
+    button {
+        cursor: pointer;
+        margin-top: 10px;
+        margin: 0 auto;
+        display: block;
+    }
+    
+    .back-link {
+        display: inline-block;
+        margin-bottom: 20px;
+        color: #007bff;
+        text-decoration: none;
+    }
+</style>
+
+
+{% endblock %}

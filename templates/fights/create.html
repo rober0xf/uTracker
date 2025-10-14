@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Create Fight</h1>
+
+<form method="post">
+  <label>Fighter A:</label>
+  <select name="fighter_a_id">
+    {% for fighter in fighters %}
+    <option value="{{ fighter.id }}">{{ fighter.name }}</option>
+    {% endfor %}
+  </select>
+
+  <label>Fighter B:</label>
+  <select name="fighter_b_id">
+    {% for fighter in fighters %}
+    <option value="{{ fighter.id }}">{{ fighter.name }}</option>
+    {% endfor %}
+  </select>
+
+  <label>Date:</label>
+  <input type="date" name="date" required>
+
+  <button type="submit">Create</button>
+</form>
+
+<a href="{{ url_for('list_fights') }}">Cancel</a>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Delete Fight #{{ fight.id }}</h1>
+
+<p>Are you sure you want to delete the fight between {{ fight.fighter_a.name }} and {{ fight.fighter_b.name }}?</p>
+
+<form method="post">
+  <button type="submit">Confirm Delete</button>
+  <a href="{{ url_for('list_fights') }}">Cancel</a>
+</form>
+{% endblock %}
