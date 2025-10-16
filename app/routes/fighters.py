@@ -13,16 +13,8 @@ from app.core.templates import templates
 
 from app.db.session import get_db
 from app.schemas.fighters import FighterForm, Fighters, FightersUpdate
+from app.services.fighters import create_fighter_service, create_fighter_with_features_service, get_all_fighters_service, get_fighter_service, remove_fighter_service, update_fighter_service
 from app.services.map_features import get_fighter_update_form
-
-from .services import (
-    create_fighter_service,
-    create_fighter_with_features_service,
-    get_all_fighters_service,
-    get_fighter_service,
-    remove_fighter_service,
-    update_fighter_service,
-)
 
 
 def fighter_form(
@@ -67,14 +59,13 @@ fighter_form_dep = Depends(fighter_form)  # singleton
     status_code=status.HTTP_200_OK,
 )
 def get_all_fighters(request: Request, db: Session = db_dependency):
-    fighters = get_all_fighters_service(db)
-    if not fighters:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="no fighters found"
-        )
-    return templates.TemplateResponse(
-        "fighters/list.html", {"request": request, "fighters": fighters}
-    )
+    try:
+        fighters = get_all_fighters_service(db)
+        return templates.TemplateResponse("fighters/list.html", {"request": request, "fighters": fighters})
+
+    except ValueError as e:
+        return templates.TemplateResponse("fighters/not_found.html", {"request": request})
+        # raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="no fighters found")
 
 
 # create fighter form view
@@ -96,26 +87,16 @@ def create_fighter_form(request: Request):
 def update_fighter_form(request: Request, id: int, db: Session = db_dependency):
     fighter = get_fighter_service(id, db)
     if not fighter:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="fighter not found"
-        )
-    return templates.TemplateResponse(
-        "fighters/update.html", {"request": request, "fighter": fighter}
-    )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="fighter not found")
+    return templates.TemplateResponse("fighters/update.html", {"request": request, "fighter": fighter})
 
 
-@router.get(
-    "/{id}", name="get_fighter", response_model=Fighters, status_code=status.HTTP_200_OK
-)
+@router.get("/{id}", name="get_fighter", response_model=Fighters, status_code=status.HTTP_200_OK)
 def get_fighter(request: Request, id: int, db: Session = db_dependency):
     fighter = get_fighter_service(id, db)
     if not fighter:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="fighter not found"
-        )
-    return templates.TemplateResponse(
-        "fighters/get.html", {"request": request, "fighter": fighter}
-    )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="fighter not found")
+    return templates.TemplateResponse("fighters/get.html", {"request": request, "fighter": fighter})
 
 
 @router.post(
@@ -129,10 +110,10 @@ def create_fighter(
     db: Session = db_dependency,
     form_data: FighterForm = fighter_form_dep,
 ):
-    create_fighter_service(form_data, db=db)
-    return RedirectResponse(
-        url=request.url_for("list_fighters"), status_code=status.HTTP_303_SEE_OTHER
-    )
+    fighter = create_fighter_service(form_data, db=db)
+    if not fighter:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="error creating fighter")
+    return RedirectResponse(url=request.url_for("list_fighters"), status_code=status.HTTP_303_SEE_OTHER)
 
 
 # we need to use put as post because the template
@@ -148,16 +129,14 @@ def update_fighter(
     db: Session = db_dependency,
     form_data: FightersUpdate = Depends(get_fighter_update_form),
 ):
-    update_fighter_service(id, form_data, db)
-    return RedirectResponse(
-        url=request.url_for("get_fighter", id=id), status_code=status.HTTP_303_SEE_OTHER
-    )
+    fighter = update_fighter_service(id, form_data, db)
+    if not fighter:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="fighter not found")
+    return RedirectResponse(url=request.url_for("get_fighter", id=id), status_code=status.HTTP_303_SEE_OTHER)
 
 
 @router.patch("/{id}", response_model=Fighters, status_code=status.HTTP_200_OK)
-def update_fields_fighter(
-    id: int, fighter: FightersUpdate, db: Session = db_dependency
-):
+def update_fields_fighter(id: int, fighter: FightersUpdate, db: Session = db_dependency):
     return update_fighter_service(id, fighter, db)
 
 
