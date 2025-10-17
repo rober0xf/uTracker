@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block content %}
+
+<button onclick="window.location.href='{{ url_for('update_fighter_form', id=fighter.id) }}'">Update Fighter</button>
+<button hx-delete="{{ url_for('delete_fighter', id=fighter.id) }}" 
+        hx-confirm="Are you sure?" 
+        hx-target="body"
+        style="float: right;">Delete</button>
+
+<h1>{{ fighter.name }}</h1>
+<h3> information about {{ fighter.name }}</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Division</th>
+            <th>Birth Date</th>
+            <th>Wins</th>
+            <th>Losses</th>
+            <th>Draws</th>
+            <th>No Contest</th>
+            <th>Height</th>
+            <th>Weight</th>
+            <th>Reach</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>{{ fighter.name }}</td>
+            <td>{{ fighter.division.value }}</td>
+            <td>{{ fighter.birth_date }}</td>
+            <td>{{ fighter.wins }}</td>
+            <td>{{ fighter.losses }}</td>
+            <td>{{ fighter.draws }}</td>
+            <td>{{ fighter.no_contest }}</td>
+            <td>{{ fighter.height }}</td>
+            <td>{{ fighter.weight }}</td>
+            <td>{{ fighter.reach }}</td>
+        </tr>
+    </tbody>
+</table>
+
+<style>
+    h1, h3 {
+        text-align: center;
+    }
+
+    table {
+        margin: 0 auto;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 20px;
+        text-align: center;
+    }
+
+    th {
+        text-align: center;
+        font-size: large;
+        font-weight: medium;
+        color: #0b6623;
+    }
+
+    button {
+        cursor: pointer;
+    }
+</style>
+{% endblock %}

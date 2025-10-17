@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Create New Fight</h1>
+
+<form method="POST" action="{{ url_for('create_fight') }}">
+    <!-- fight date -->
+    <div class="form-group">
+        <label for="fight_date">Fight Date:</label>
+        <input type="text" id="fight_date" name="fight_date" required>
+    </div>
+ 
+    <!-- rounds -->
+    <div class="form-group">
+        <label for="rounds">Rounds:</label>
+            <select id="rounds" name="rounds" required>
+            <option value="3">Three</option>
+            <option value="5">Five</option>
+        </select>
+    </div>
+    
+    <!-- division -->
+    <div class="form-group">
+        <label for="division">Division:</label>
+        <select id="division" name="division" required>
+            <option value="flyweight">Flyweight</option>
+            <option value="bantamweight">Bantamweight</option>
+            <option value="featherweight">Featherweight</option>
+            <option value="lightweight">Lightweight</option>
+            <option value="welterweight">Welterweight</option>
+            <option value="middleweight">Middleweight</option>
+            <option value="light_heavyweight">Light Heavyweight</option>
+            <option value="heavyweight">Heavyweight</option>
+        </select>
+    </div>
+
+    <!-- card -->
+    <div class="form-group">
+        <label for="card_id">Card:</label>
+        <select id="card_id" name="card_id" required>
+            <option value="">Select a card</option>
+            {% for card in cards %}
+            <option value="{{ card.id }}">{{ card.card_name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- red corner -->
+    <div class="form-group">
+        <label for="red_corner">Red Corner:</label>
+        <select id="red_corner" name="red_corner" required>
+            <option value="">Select a fighter</option>
+            {% for fighter in fighters %}
+            <option value="{{ fighter.id }}">{{ fighter.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- blue corner -->
+    <div class="form-group">
+        <label for="blue_corner">Blue Corner:</label>
+        <select id="blue_corner" name="blue_corner" required>
+            <option value="">Select a fighter</option>
+            {% for fighter in fighters %}
+            <option value="{{ fighter.id }}">{{ fighter.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+     <!-- method -->
+    <div class="form-group">
+        <label for="winning_method">Winning Method (optional):</label>
+        <select id="winning_method" name="winning_method">
+            <option value="">Select a winning method</option>
+            <option value="decision">Decision</option>
+            <option value="ko">KO</option>
+            <option value="tko">TKO</option>
+            <option value="submission">Submission</option>
+            <option value="draw">Draw</option>
+            <option value="nc">No Contest</option>
+            <option value="dq">Disqualification</option>
+        </select>
+    </div>
+
+    <!-- favorite -->
+    <div class="form-group">
+        <label for="favorite">Favorite (optional):</label>
+        <input type="number" id="favorite" name="favorite" min="0">
+    </div>
+
+    <!-- winner -->
+    <div class="form-group">
+        <label for="winner">Winner (optional):</label>
+        <input type="number" id="winner" name="winner" min="0">
+    </div>
+
+    <!-- round finish -->
+    <div class="form-group">
+        <label for="round_finish">Round Finish (optional):</label>
+        <input type="number" id="round_finish" name="round_finish" min="1" max="5">
+    </div>
+
+    <button type="submit">Create Fight</button>
+</form>
+
+<style>
+    form {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    
+    input, select {
+        width: 100%;
+        padding: 8px;
+        box-sizing: border-box;
+    }
+    
+    button {
+        cursor: pointer;
+        margin-top: 10px;
+        margin: 0 auto;
+        display: block;
+    }
+    
+    .back-link {
+        display: inline-block;
+        margin-bottom: 20px;
+        color: #007bff;
+        text-decoration: none;
+    }
+</style>
+
+<!-- script to prevent set the same fighter -->
+<script>
+    const redCorner = document.getElementById('red_corner');
+    const blueCorner = document.getElementById('blue_corner');
+    
+    redCorner.addEventListener('change', function() {
+        if (this.value === blueCorner.value && this.value !== '') {
+            alert('Red and Blue corner cannot be the same fighter!');
+            this.value = '';
+        }
+    });
+    
+    blueCorner.addEventListener('change', function() {
+        if (this.value === redCorner.value && this.value !== '') {
+            alert('Red and Blue corner cannot be the same fighter!');
+            this.value = '';
+        }
+    });
+</script>
+{% endblock %}

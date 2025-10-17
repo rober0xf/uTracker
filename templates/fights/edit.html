@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Edit Fight #{{ fight.id }}</h1>
+
+<form method="post">
+  <label>Fighter A:</label>
+  <select name="fighter_a_id">
+    {% for fighter in fighters %}
+    <option value="{{ fighter.id }}" {% if fighter.id == fight.fighter_a.id %}selected{% endif %}>
+      {{ fighter.name }}
+    </option>
+    {% endfor %}
+  </select>
+
+  <label>Fighter B:</label>
+  <select name="fighter_b_id">
+    {% for fighter in fighters %}
+    <option value="{{ fighter.id }}" {% if fighter.id == fight.fighter_b.id %}selected{% endif %}>
+      {{ fighter.name }}
+    </option>
+    {% endfor %}
+  </select>
+
+  <label>Date:</label>
+  <input type="date" name="date" value="{{ fight.date }}" required>
+
+  <label>Result:</label>
+  <input type="text" name="result" value="{{ fight.result or '' }}">
+
+  <button type="submit">Update</button>
+</form>
+
+<a href="{{ url_for('list_fights') }}">Cancel</a>
+{% endblock %}

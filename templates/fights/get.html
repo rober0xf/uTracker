@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block content %}
+
+<button onclick="window.location.href='{{ url_for('update_fight_form', id=fight.id) }}'">Update Fight</button>
+<button hx-delete="{{ url_for('delete_fight', id=fight.id) }}" 
+        hx-confirm="Are you sure?" 
+        hx-target="body"
+        style="float: right;">Delete</button>
+
+<h1>{{ fight.red_fighter.name }} vs {{ fight.blue_fighter.name }}</h1>
+<table>
+    <thead>
+        <tr>
+            <th>Fight Date</th>
+            <th>Rounds</th>
+            <th>Division</th>
+            <th>Method</th>
+            <th>Card</th>
+            <th>Red Corner</th>
+            <th>Blue Corner</th>
+            <th>Favorite</th>
+            <th>Winner</th>
+            <th>Round Finish</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>{{ fight.fight_date }}</td>
+            <td>{{ fight.rounds.value }}</td>
+            <td>{{ fight.division.value }}</td>
+            <td>{{ fight.method.value if fight.method else "Soon" }}</td>
+            <td>
+                <a href="{{ url_for('get_card', id=fight.id ) }}">
+                    {{ fight.card }}
+                </a>
+            </td>
+            <td>{{ fight.red_fighter.name }}</td>
+            <td>{{ fight.blue_fighter.name }}</td>
+            <td>{{ fight.favorite_fighter.name if fight.favorite else "Soon" }}</td>
+            <td>{{ fight.winner_fighter.name if fight.winner else "Soon"}}</td>
+            <td>{{ fight.round_finish if fight.round_finish else "Soon"}}</td>
+        </tr>
+    </tbody>
+</table>
+
+<style>
+    h1 {
+        text-align: center;
+        color: purple;
+    }
+
+    table {
+        margin: 0 auto;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 20px;
+        text-align: center;
+    }
+
+    th {
+        text-align: center;
+        font-size: large;
+        font-weight: medium;
+        color: #0b6623;
+    }
+
+    button {
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
