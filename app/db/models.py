@@ -51,6 +51,7 @@ class FightsDB(Base):
     favorite: Mapped[int | None] = mapped_column(ForeignKey("fighters.id"), nullable=True)
     winner: Mapped[int | None] = mapped_column(ForeignKey("fighters.id"), nullable=True)
     round_finish: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    fight_date: Mapped[date] = mapped_column(Date, nullable=False)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     # relationship definition
@@ -77,18 +78,6 @@ class CardsDB(Base):
         CheckConstraint("LENGTH(card_name) >= 5", name="card_name_min_length"),
         CheckConstraint("LENGTH(card_name) <=50", name="card_name_max_length"),
     )
-
-
-class PicksDB(Base):
-    __tablename__: str = "picks"
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    fight_id: Mapped[int] = mapped_column(ForeignKey("fights.id"), nullable=False)
-    winner_pick: Mapped[int] = mapped_column(ForeignKey("fighters.id"), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
-
-    # relationship definition
-    fight: Mapped["FightsDB"] = relationship("FightsDB", foreign_keys=[fight_id])
-    winner_picked: Mapped["FightsDB"] = relationship("FightersDB", foreign_keys=[winner_pick])
 
 
 class FighterFeatures(Base):
