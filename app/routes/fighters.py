@@ -1,7 +1,6 @@
 from fastapi import (
     APIRouter,
     Depends,
-    Form,
     status,
     HTTPException,
     HTTPException,
@@ -13,43 +12,23 @@ from app.core.templates import templates
 
 from app.db.session import get_db
 from app.schemas.fighters import FighterForm, Fighters, FightersUpdate
-from app.services.fighters import create_fighter_service, create_fighter_with_features_service, get_all_fighters_service, get_fighter_service, remove_fighter_service, update_fighter_service
-from app.services.map_features import get_fighter_update_form
-
-
-def fighter_form(
-    name: str = Form(...),
-    division: str = Form(...),
-    birth_date: str = Form(...),
-    wins: int = Form(...),
-    losses: int = Form(...),
-    draws: str = Form(""),
-    no_contest: str = Form(""),
-    height: float = Form(...),
-    weight: float = Form(...),
-    reach: str = Form(""),
-) -> FighterForm:
-    return FighterForm(
-        name=name,
-        division=division,
-        birth_date=birth_date,
-        wins=wins,
-        losses=losses,
-        draws=None if draws == "" else int(draws),
-        no_contest=None if no_contest == "" else int(no_contest),
-        height=height,
-        weight=weight,
-        reach=None if reach == "" else float(reach),
-    )
+from app.services.fighters import (
+    create_fighter_form_service,
+    create_fighter_service,
+    create_fighter_with_features_service,
+    get_all_fighters_service,
+    get_fighter_by_id_service,
+    get_fighter_update_form,
+    remove_fighter_service,
+    update_fighter_service,
+)
 
 
 router = APIRouter(prefix="/fighters", tags=["Fighters"])
 
 # modular fuction paremeters
 db_dependency = Depends(get_db)
-required_form = Form(...)
-optional_form = Form(None)
-fighter_form_dep = Depends(fighter_form)  # singleton
+fighter_form_dep = Depends(create_fighter_form_service)  # singleton
 
 
 @router.get(
@@ -68,7 +47,15 @@ def get_all_fighters(request: Request, db: Session = db_dependency):
         # raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="no fighters found")
 
 
-# create fighter form view
+@router.get("/{id}/details", name="get_fighter", response_model=Fighters, status_code=status.HTTP_200_OK)
+def get_fighter(request: Request, id: int, db: Session = db_dependency):
+    fighter = get_fighter_by_id_service(id, db)
+    if not fighter:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="fighter not found")
+    return templates.TemplateResponse("fighters/get.html", {"request": request, "fighter": fighter})
+
+
+# template form to create
 @router.get(
     "/create_fighter_view",
     name="create_fighter_form",
@@ -78,25 +65,17 @@ def create_fighter_form(request: Request):
     return templates.TemplateResponse("fighters/create.html", {"request": request})
 
 
-# update fighter form view
+# template form to update
 @router.get(
     "{id}/update",
     name="update_fighter_form",
     response_class=HTMLResponse,
 )
 def update_fighter_form(request: Request, id: int, db: Session = db_dependency):
-    fighter = get_fighter_service(id, db)
+    fighter = get_fighter_by_id_service(id, db)
     if not fighter:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="fighter not found")
     return templates.TemplateResponse("fighters/update.html", {"request": request, "fighter": fighter})
-
-
-@router.get("/{id}", name="get_fighter", response_model=Fighters, status_code=status.HTTP_200_OK)
-def get_fighter(request: Request, id: int, db: Session = db_dependency):
-    fighter = get_fighter_service(id, db)
-    if not fighter:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="fighter not found")
-    return templates.TemplateResponse("fighters/get.html", {"request": request, "fighter": fighter})
 
 
 @router.post(
@@ -133,11 +112,6 @@ def update_fighter(
     if not fighter:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="fighter not found")
     return RedirectResponse(url=request.url_for("get_fighter", id=id), status_code=status.HTTP_303_SEE_OTHER)
-
-
-@router.patch("/{id}", response_model=Fighters, status_code=status.HTTP_200_OK)
-def update_fields_fighter(id: int, fighter: FightersUpdate, db: Session = db_dependency):
-    return update_fighter_service(id, fighter, db)
 
 
 @router.delete("/{id}", name="delete_fighter", status_code=status.HTTP_200_OK)

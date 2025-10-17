@@ -8,7 +8,6 @@ from app.db.settings import settings_api
 from app.routes.cards import router as cards_router
 from app.routes.fighters import router as fighters_router
 from app.routes.fights import router as fights_router
-from app.routes.picks import router as picks_router
 
 RAPIDAPI_API_KEY = settings_api.rapidapi_api_key
 if not RAPIDAPI_API_KEY:
@@ -26,7 +25,6 @@ app = FastAPI(title="uTracker")
 app.include_router(fights_router)
 app.include_router(fighters_router)
 app.include_router(cards_router)
-app.include_router(picks_router)
 
 
 @app.get("/", response_class=HTMLResponse)

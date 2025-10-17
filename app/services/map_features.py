@@ -1,8 +1,6 @@
 from sqlalchemy.orm import Session
-from fastapi import Form
 
 from app.db.models import FighterFeatures
-from app.schemas.fighters import DivisionEnum, FightersUpdate
 
 
 def to_float(value):
@@ -43,33 +41,3 @@ def update_fighter_features(session: Session, fighter_id: int, api_data: dict):
         features = FighterFeatures(fighter_id=fighter_id, **features_data)
         session.add(features)
     session.commit()
-
-
-# we need to use this service because the way fastapi handles forms
-async def get_fighter_update_form(
-    name: str = Form(None),
-    division: str = Form(None),
-    wins: str = Form(None),
-    losses: str = Form(None),
-    draws: str = Form(None),
-    no_contest: str = Form(None),
-    height: str = Form(None),
-    weight: str = Form(None),
-    reach: str = Form(None),
-) -> FightersUpdate:
-    parsed_division = None
-    if division:
-        parsed_division = DivisionEnum(division)
-
-    return FightersUpdate(
-        name=name if name else None,
-        division=parsed_division,
-        birth_date=None,
-        wins=int(wins) if wins and wins.strip() else None,
-        losses=int(losses) if losses and losses.strip() else None,
-        draws=int(draws) if draws and draws.strip() else None,
-        no_contest=int(no_contest) if no_contest and no_contest.strip() else None,
-        height=float(height) if height and height.strip() else None,
-        weight=float(weight) if weight and weight.strip() else None,
-        reach=float(reach) if reach and reach.strip() else None,
-    )

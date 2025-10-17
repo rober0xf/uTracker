@@ -10,12 +10,17 @@
         <header>
             <nav>
                 <a href="{{ url_for('list_fights') }}">Fights</a> |
-                <a href="{{ url_for('list_fighters') }}">Fighters</a>
+                <a href="{{ url_for('list_fighters') }}">Fighters</a> |
+                <a href="{{ url_for('list_cards') }}">Cards</a>
             </nav>
             <hr />
         </header>
 
-        <main>{% block content %}{% endblock %}</main>
+        <main>
+            {% block content %}
+                <h1>Welcome to uTracker</h1>
+            {% endblock %}
+        </main>
 
         <footer>
             <hr />
@@ -23,3 +28,32 @@
         </footer>
     </body>
 </html>
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+    }
+
+    h1 {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    a {
+        margin: 10px;
+    }
+
+    body {
+        display: flex;
+        flex-direction: column;
+    }
+
+    main {
+        flex: 1; 
+    }
+
+    footer {
+        text-align: center;
+    }
+</style>
