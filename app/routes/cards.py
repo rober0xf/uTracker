@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from app.core.templates import templates
-from app.db.models import CardsDB, FightsDB
 from app.db.session import get_db
 from app.schemas.cards import CardForm, Cards
 from app.services.cards import create_card_form_service, create_card_service, delete_card_service, get_all_cards_service, get_card_by_id_service
