@@ -81,16 +81,21 @@
         </select>
     </div>
 
+
     <!-- favorite -->
     <div class="form-group">
-        <label for="favorite">Favorite (optional):</label>
-        <input type="number" id="favorite" name="favorite" min="0">
+        <label for="favorite">Favorite:</label>
+            <select id="favorite" name="favorite">
+                <option value="">Select Favorite</option>
+            </select>
     </div>
 
     <!-- winner -->
     <div class="form-group">
-        <label for="winner">Winner (optional):</label>
-        <input type="number" id="winner" name="winner" min="0">
+        <label for="winner">Winner:</label>
+            <select id="winner" name="winner">
+                <option value="">Select Winner</option>
+            </select>
     </div>
 
     <!-- round finish -->
@@ -143,6 +148,8 @@
 <script>
     const redCorner = document.getElementById('red_corner');
     const blueCorner = document.getElementById('blue_corner');
+    const winnerSelect = document.getElementById('winner');
+    const favoriteSelect = document.getElementById('favorite');
     
     redCorner.addEventListener('change', function() {
         if (this.value === blueCorner.value && this.value !== '') {
@@ -157,5 +164,46 @@
             this.value = '';
         }
     });
+
+    function updateWinnerOptions() {
+        winnerSelect.innerHTML = '<option value="">Select Winner</option>';
+
+        if (redCorner.value) {
+            const redOption = document.createElement('option');
+            redOption.value = redCorner.value;
+            redOption.textContent = redCorner.options[redCorner.selectedIndex].text;
+            winnerSelect.appendChild(redOption);
+        }
+
+        if (blueCorner.value) {
+            const blueOption = document.createElement('option');
+            blueOption.value = blueCorner.value;
+            blueOption.textContent = blueCorner.options[blueCorner.selectedIndex].text;
+            winnerSelect.appendChild(blueOption);
+        }
+    }
+
+    function updateFavoriteOptions() {
+        favoriteSelect.innerHTML = '<option value="">Select Favorite</option>';
+
+        if (redCorner.value) {
+            const redOption = document.createElement('option');
+            redOption.value = redCorner.value;
+            redOption.textContent = redCorner.options[redCorner.selectedIndex].text;
+            favoriteSelect.appendChild(redOption);
+        }
+
+        if (blueCorner.value) {
+            const blueOption = document.createElement('option');
+            blueOption.value = blueCorner.value;
+            blueOption.textContent = blueCorner.options[blueCorner.selectedIndex].text;
+            favoriteSelect.appendChild(blueOption);
+        }
+    }
+
+    redCorner.addEventListener('change', updateWinnerOptions);
+    blueCorner.addEventListener('change', updateWinnerOptions);
+    redCorner.addEventListener('change', updateFavoriteOptions);
+    blueCorner.addEventListener('change', updateFavoriteOptions);
 </script>
 {% endblock %}

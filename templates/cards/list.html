@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>All Cards</h1>
+<button onclick="window.location.href='{{ url_for('create_card_form') }}'">Create New Card</button>
+<table>
+    <thead>
+        <tr>
+            <th>Card Name</th>
+            <th>Card Date</th>
+            <th>Card Number</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for card in cards %}
+        <tr>
+            <td>
+                <a href="{{ url_for('get_card', id=card.id) }}">
+                    {{ card.card_name }}
+                </a>
+            </td>
+            <td>{{ card.card_date }}</td>
+            <td>{{ card.card_number }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<style>
+    h1 {
+        text-align: center;
+    }
+
+    table {
+        margin: 0 auto;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 20px;
+        text-align: center;
+    }
+
+    th {
+        text-align: center;
+        font-size: large;
+        font-weight: medium;
+        color: #0b6623;
+    }
+
+    button {
+        cursor: pointer;
+    }
+</style>
+{% endblock %}

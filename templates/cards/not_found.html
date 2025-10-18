@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<div>
+    <h1>No Cards Found</h1>
+    <button onclick="window.location.href='{{ url_for('create_card_form') }}'">Create New Card</button>
+</div>
+
+<style>
+    div {
+        text-align: center;
+    }
+
+    h1 {
+        padding-top: 50px;
+    }
+
+    button {
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
