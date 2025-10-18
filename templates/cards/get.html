@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+
+<button hx-delete="{{ url_for('delete_card', id=card.id) }}" 
+        hx-confirm="Are you sure?" 
+        hx-target="body"
+        style="float: right;">Delete</button>
+
+<h1>{{ card.card_name }}</h1>
+<table>
+    <thead>
+        <tr>
+            <th>Main Event</th>
+            <th>Date</th>
+            <th>Card Number</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>{{ card.card_name }}</td>
+            <td>{{ card.card_date }}</td>
+            <td>{{ card.card_number if card.card_number else "Not Numered" }}</td>
+        </tr>
+    </tbody>
+</table>
+
+<style>
+    h1 {
+        text-align: center;
+        color: purple;
+    }
+
+    table {
+        margin: 0 auto;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 20px;
+        text-align: center;
+    }
+
+    th {
+        text-align: center;
+        font-size: large;
+        font-weight: medium;
+        color: #0b6623;
+    }
+
+    button {
+        cursor: pointer;
+    }
+</style>
+{% endblock %}

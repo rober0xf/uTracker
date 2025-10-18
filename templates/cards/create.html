@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Create New Card</h1>
+
+<form method="POST" action="{{ url_for('create_card') }}">
+    <!-- card name -->
+    <div class="form-group">
+        <label for="card_name">Card Name:</label>
+        <input type="text" id="card_name" name="card_name" required>
+    </div>
+
+    <!-- card date -->
+    <div class="form-group">
+        <label for="card_date">Card Date (YYYY-MM-DD):</label>
+        <input type="text" id="card_date" name="card_date" required>
+    </div>
+
+    <!-- card number -->
+    <div class="form-group">
+        <label for="card_number">Card Number (optional):</label>
+        <input type="number" id="card_number" name="card_number" min="1" max="1000">
+    </div>
+
+    <button type="submit">Create Card</button>
+</form>
+
+<style>
+    form {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    
+    input, select {
+        width: 100%;
+        padding: 8px;
+        box-sizing: border-box;
+    }
+    
+    button {
+        cursor: pointer;
+        margin-top: 10px;
+        margin: 0 auto;
+        display: block;
+    }
+    
+    .back-link {
+        display: inline-block;
+        margin-bottom: 20px;
+        color: #007bff;
+        text-decoration: none;
+    }
+</style>
+
+{% endblock %}
