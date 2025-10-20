@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
+<script src="https://unpkg.com/htmx.org"></script>
 <button onclick="window.location.href='{{ url_for('update_fight_form', id=fight.id) }}'">Update Fight</button>
 <button hx-delete="{{ url_for('delete_fight', id=fight.id) }}" 
         hx-confirm="Are you sure?" 
@@ -43,7 +44,20 @@
     </tbody>
 </table>
 
+<div>
+    <button hx-post="/fights/predict_html" hx-vals='{"red_corner_id": {{ fight.red_fighter.id | tojson }}, "blue_corner_id": {{ fight.blue_fighter.id | tojson }}}'
+            hx-target="#prediction-result" hx-swap="innerHTML">
+        Predict
+    </button>
+</div>
+<div id="prediction-result"></div>
+
 <style>
+    div {
+        text-align: center;
+        padding: 50px;
+    }
+
     h1 {
         text-align: center;
         color: purple;

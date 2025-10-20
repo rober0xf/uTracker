@@ -1,0 +1,1 @@
+{"input_dim": 14, "feature_names": ["BlueAvgSigStrLanded", "BlueAvgSigStrPct", "BlueAvgSubAtt", "BlueAvgTDLanded", "BlueAvgTDPct", "BlueWinsByKO", "BlueWinsBySubmission", "RedAvgSigStrLanded", "RedAvgSigStrPct", "RedAvgSubAtt", "RedAvgTDLanded", "RedAvgTDPct", "RedWinsByKO", "RedWinsBySubmission"]}

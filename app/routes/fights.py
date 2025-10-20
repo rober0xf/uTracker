@@ -1,7 +1,10 @@
+from typing import cast
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from sqlalchemy.orm import Session
+import torch
 
+from app.db.models import FighterFeatures
 from app.db.session import get_db
 from app.schemas.fights import FightForm, Fights, FightsUpdate
 from app.core.templates import templates
@@ -15,6 +18,7 @@ from app.services.fights import (
     remove_fight_service,
     update_fight_service,
 )
+from app.services.predictor import FightPredictionRequest, FightPredictionResponse, get_or_fetch_fighter_features, get_pytorch_model, prepare_model_input
 
 router = APIRouter(prefix="/fights", tags=["Fights"])
 
@@ -110,3 +114,74 @@ def remove_fight(request: Request, id: int, db: Session = db_dependency):
     response = Response(status_code=200)
     response.headers["HX-Redirect"] = str(request.url_for("list_fights"))
     return response
+
+
+# pytorch model
+@router.post("/predict", response_model=FightPredictionResponse)
+async def predict_fight(payload: FightPredictionRequest, db: Session = db_dependency):
+    model = get_pytorch_model()
+    red_features = await get_or_fetch_fighter_features(payload.red_corner_id, db)
+    blue_features = await get_or_fetch_fighter_features(payload.blue_corner_id, db)
+    model_input = prepare_model_input(red_features, blue_features)
+
+    with torch.no_grad():
+        output = model(model_input)
+        probability = torch.sigmoid(output)[0][0]
+
+    red_prob = float(probability.cpu())
+    blue_prob = 1.0 - red_prob  # the probs are sigmoid, not softmax
+
+    return FightPredictionResponse(
+        red_corner_id=payload.red_corner_id,
+        blue_corner_id=payload.blue_corner_id,
+        red_corner_win_probability=red_prob,
+        blue_corner_win_probability=blue_prob,
+    )
+
+
+@router.post("/predict_html", response_class=HTMLResponse)
+async def predict_fight_html(request: Request, db: Session = db_dependency):
+    try:
+        form = await request.form()
+        red_id = int(cast(str, form["red_corner_id"]))
+        blue_id = int(cast(str, form["blue_corner_id"]))
+
+        payload = FightPredictionRequest(
+            red_corner_id=red_id,
+            blue_corner_id=blue_id,
+        )
+        print(f"prediction: {payload.red_corner_id}, {payload.blue_corner_id}")
+
+        result = await predict_fight(payload, db)
+        print(f"real prediction: {result.red_corner_win_probability}, {result.blue_corner_win_probability}")
+        html = f"""
+        <div>
+          <strong style='color: red;'>Red win:</strong> {result.red_corner_win_probability:.2%}<br>
+          <strong style='color: blue;'>Blue win:</strong> {result.blue_corner_win_probability:.2%}
+        </div>
+        """
+        return HTMLResponse(html)
+    except Exception as e:
+        print(f"error: {str(e)}")
+        import traceback
+
+        traceback.print_exc()
+        return HTMLResponse(f"<div style='color: red;'>error: {str(e)}</div>", status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# testing
+@router.post("/insert-features")
+async def insert_features(fighter_id: int, db: Session = db_dependency):
+    features = FighterFeatures(
+        fighter_id=fighter_id,
+        avg_sig_str_landed=2.53,
+        avg_sig_str_pct=0.69,
+        avg_sub_att=0.00,
+        avg_td_landed=4.04,
+        avg_td_pct=0.59,
+        wins_by_ko=1,
+        wins_by_submission=6,
+    )
+    db.add(features)
+    db.commit()
+    return {"status": "good"}
