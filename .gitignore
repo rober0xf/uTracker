@@ -30,7 +30,9 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
 utracker.db
+pytorch/predictor.pt
 
 # Ruff stuff:
 .ruff_cache/

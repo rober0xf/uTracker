@@ -1,3 +1,4 @@
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
@@ -9,6 +10,7 @@ from app.routes.cards import router as cards_router
 from app.routes.fighters import router as fighters_router
 from app.routes.fights import router as fights_router
 
+
 RAPIDAPI_API_KEY = settings_api.rapidapi_api_key
 if not RAPIDAPI_API_KEY:
     raise RuntimeError("RAPIDAPI_API_KEY is not set")
@@ -19,8 +21,17 @@ with engine.connect() as conn:
 # create the tables
 Base.metadata.create_all(bind=engine)
 
+
 # server instances & html rendering
-app = FastAPI(title="uTracker")
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(fights_router)
 app.include_router(fighters_router)
