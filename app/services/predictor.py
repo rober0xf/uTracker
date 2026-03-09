@@ -1,16 +1,14 @@
 import json
-from fastapi import HTTPException
-from pydantic import BaseModel
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+
 import torch
 import torch.nn as nn
-from app.db.models import FighterFeatures
-
+from infraestructure.database.models.fighter_model import FighterFeatures
+from infraestructure.database.repositories.fighters_repository import FighterRepository
+from pydantic import BaseModel
 
 model = None
 
-with open("pytorch/predictor_meta.json", "r") as f:
+with open("pytorch/predictor_meta.json") as f:
     metadata = json.load(f)
 
 
@@ -29,7 +27,13 @@ def get_pytorch_model():
 class FightPredictor(nn.Module):
     def __init__(self, input_dim):
         super().__init__()
-        self.net = nn.Sequential(nn.Linear(input_dim, 128), nn.ReLU(), nn.Linear(128, 64), nn.ReLU(), nn.Linear(64, 1))
+        self.net = nn.Sequential(
+            nn.Linear(input_dim, 128),
+            nn.ReLU(),
+            nn.Linear(128, 64),
+            nn.ReLU(),
+            nn.Linear(64, 1),
+        )
 
     def forward(self, x):
         return self.net(x)
@@ -51,41 +55,12 @@ class FightPredictionResponse(BaseModel):
     blue_corner_win_probability: float
 
 
-async def get_or_fetch_fighter_features(fighter_id: int, db: Session) -> dict:
-    stmt = select(FighterFeatures).where(FighterFeatures.fighter_id == fighter_id)
-    features = db.execute(stmt).scalars().first()
-
-    # if features and all(
-    #     [
-    #         features.avg_sig_str_landed,
-    #         features.avg_sig_str_pct,
-    #         features.avg_sub_att,
-    #         features.avg_td_landed,
-    #         features.avg_td_pct,
-    #     ]
-    # ):
-    #     return features_to_dict(features)
+def get_or_fetch_fighter_features(fighter_id: int, repo: FighterRepository) -> dict:
+    features = repo.get_features_by_fighter_id(fighter_id)
     if features:
         return features_to_dict(features)
 
-    raise HTTPException(status_code=400, detail=f"fighter {fighter_id} has no features")
-    # fighter = db.execute(select(FightersDB).where(FightersDB.id == fighter_id)).scalars().first()
-    #
-    # if not fighter:
-    #     raise HTTPException(status_code=404, detail=f"Fighter {fighter_id} not found")
-    #
-    # external_data = await get_external_fighter_features(fighter.name)
-    # print(f"External API response: {external_data}")
-    #
-    # if not external_data:
-    #     raise HTTPException(status_code=502, detail=f"Could not fetch data for fighter {fighter.name} from external API")
-    #
-    # update_fighter_features(db, fighter_id, external_data)
-    # db.commit()
-    #
-    # # fetch updated features
-    # updated_features = db.execute(stmt).scalars().first()
-    # return features_to_dict(updated_features)
+    raise ValueError(f"fighter {fighter_id} has no features")
 
 
 def features_to_dict(features: FighterFeatures | None) -> dict:

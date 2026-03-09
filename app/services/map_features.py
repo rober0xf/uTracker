@@ -1,19 +1,7 @@
-from sqlalchemy.orm import Session
-
-from app.db.models import FighterFeatures
-
-
 def to_float(value):
     if isinstance(value, str):
         return float(value.strip("%").split()[0])
     return float(value) if value else 0.0
-
-
-def time_to_minutes(time):
-    if not time:
-        return 0
-    mins, secs = time.split(":")
-    return int(mins) + int(secs) / 60.0
 
 
 def map_api_to_features(api_data):
@@ -29,15 +17,3 @@ def map_api_to_features(api_data):
         "wins_by_ko": int(win_stats.get("Wins by Knockout", 0)),
         "wins_by_submission": int(win_stats.get("Wins by Submission", 0)),
     }
-
-
-def update_fighter_features(session: Session, fighter_id: int, api_data: dict):
-    features_data = map_api_to_features(api_data)
-    features = session.query(FighterFeatures).filter_by(fighter_id=fighter_id).first()
-    if features:
-        for key, val in features_data.items():
-            setattr(features, key, val)
-    else:
-        features = FighterFeatures(fighter_id=fighter_id, **features_data)
-        session.add(features)
-    session.commit()

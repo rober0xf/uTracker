@@ -1,74 +1,39 @@
-from datetime import datetime
-from fastapi import Depends, Form
-from sqlalchemy.orm import Session
-
-from app.db.models import FightersDB
-from app.db.session import get_db
-from app.schemas.fighters import DivisionEnum, FighterForm, FightersBase, FightersUpdate
-from app.services.api_services import get_external_fighter_features
-from app.services.map_features import update_fighter_features
+from domain.enums.enums import DivisionEnum
+from fastapi import Form
+from infraestructure.database.models.fighter_model import FighterDB
+from infraestructure.database.repositories.fighters_repository import FighterRepository
+from interfaces.schemas.fighters import FighterBase, FighterForm, FighterUpdate
+from services.api_services import get_external_fighter_features
 
 
-db_dependency = Depends(get_db)
-
-
-# get the data from the form
-def create_fighter_form_service(
-    name: str = Form(...),
-    division: str = Form(...),
-    birth_date: str = Form(...),
-    wins: int = Form(...),
-    losses: int = Form(...),
-    draws: str | None = Form(None),
-    no_contest: str | None = Form(None),
-    height: float = Form(...),
-    weight: float = Form(...),
-    reach: str | None = Form(None),
-) -> FighterForm:
-    return FighterForm(
-        name=name,
-        division=division,
-        birth_date=birth_date,
-        wins=wins,
-        losses=losses,
-        draws=int(draws) if draws else None,
-        no_contest=int(no_contest) if no_contest else None,
-        height=height,
-        weight=weight,
-        reach=float(reach) if reach else None,
-    )
-
-
-def get_all_fighters_service(db: Session = db_dependency):
-    fighters = db.query(FightersDB).all()
+def get_all_fighters_service(repo: FighterRepository):
+    fighters = repo.get_all()
     if not fighters:
         raise ValueError("no fighters found")
     return fighters
 
 
-def get_fighter_by_id_service(id: int, db: Session = db_dependency):
-    fighter = db.query(FightersDB).filter(FightersDB.id == id).first()
+def get_fighter_by_id_service(id: int, repo: FighterRepository):
+    fighter = repo.get_by_id(id)
     if not fighter:
         raise ValueError("fighter with id not found")
     return fighter
 
 
-def create_fighter_service(fighter_form: FighterForm, db: Session = db_dependency):
-    fighter_data = fighter_form.to_fighters_base_data()  # handle the data conversion and validation with the class method
+def create_fighter_service(fighter_form: FighterForm, repo: FighterRepository):
+    # handle the data conversion and validation with the class method
+    fighter_data = fighter_form.to_fighter_base_data()
     if not fighter_data:
         raise ValueError("error parsing the fighter data")
 
-    validated_fighter = FightersBase(**fighter_data)  # validate the model
-    new_fighter = FightersDB(**validated_fighter.model_dump())
-    db.add(new_fighter)
-    db.commit()
-    db.refresh(new_fighter)
-    return new_fighter
+    validated_fighter = FighterBase(**fighter_data)
+    fighter_db = FighterDB(**validated_fighter.model_dump())
+    return repo.create(fighter_db)
 
 
 # works for put and patch
-def update_fighter_service(id: int, fighter: FightersUpdate, db: Session = db_dependency):
-    db_fighter = db.query(FightersDB).filter(FightersDB.id == id).first()
+def update_fighter_service(id: int, fighter: FighterUpdate, repo: FighterRepository):
+    db_fighter = repo.get_by_id(id)
     if not db_fighter:
         raise ValueError("fighter not found")
 
@@ -91,59 +56,35 @@ def update_fighter_service(id: int, fighter: FightersUpdate, db: Session = db_de
         "reach": db_fighter.reach,
     }
     current_data.update(update_data)  # apply the updates
-    FightersBase(**current_data)  # raise error if data is invalid
+    FighterBase(**current_data)  # raise error if data is invalid
 
-    changes_made = []
-    for field_name, new_value in update_data.items():
-        old_value = getattr(db_fighter, field_name)
-        if old_value != new_value:
-            setattr(db_fighter, field_name, new_value)
-            changes_made.append(new_value)
-
-    if changes_made:
-        db_fighter.updated_at = datetime.now()
-        db.commit()
-        db.refresh(db_fighter)
-    return db_fighter
+    return repo.update(db_fighter, update_data)
 
 
-def remove_fighter_service(id: int, db: Session = db_dependency):
-    result = db.query(FightersDB).filter(FightersDB.id == id).delete(synchronize_session=False)
+def delete_fighter_service(id: int, repo: FighterRepository):
+    result = repo.delete(id)
     if not result:
         raise ValueError("fighter not found")
-    db.commit()
     return None
 
 
 # external api
-async def create_fighter_with_features_service(fighter_form: FighterForm, session: Session):
+async def create_fighter_with_features_service(fighter_form: FighterForm, repo: FighterRepository):
+    fighter_data = fighter_form.to_fighter_base_data()
+    validated_fighter = FighterBase(**fighter_data)
+    fighter_db = FighterDB(**validated_fighter.model_dump())
+    fighter = repo.create(fighter_db)
+
     try:
-        fighter_data = fighter_form.to_fighters_base_data()
-        validated_fighter = FightersBase(**fighter_data)
-
-        fighter = FightersDB(**validated_fighter.model_dump())
-        session.add(fighter)
-        session.flush()
-
-        api_data = None
-        try:
-            api_data = await get_external_fighter_features(fighter.name)
-        except Exception as e:
-            print(f"could not fetch external data for {fighter.name}:{str(e)}")
+        api_data = await get_external_fighter_features(fighter.name)
 
         if api_data:
-            try:
-                update_fighter_features(session, fighter.id, api_data)
-            except Exception as e:
-                print(f"could not update features: {str(e)}")
-
-        session.commit()
-        session.refresh(fighter)
-        return fighter
+            repo.update_features(fighter.id, api_data)
 
     except Exception as e:
-        session.rollback()
-        raise ValueError("error with the database: {str(e)}") from None
+        print(f"could not update features: {str(e)}")
+
+    return fighter
 
 
 # we need to use this service because the way fastapi handles forms
@@ -157,10 +98,10 @@ async def get_fighter_update_form(
     height: str = Form(None),
     weight: str = Form(None),
     reach: str = Form(None),
-) -> FightersUpdate:
+) -> FighterUpdate:
     parsed_division = DivisionEnum(division) if division else None
 
-    return FightersUpdate(
+    return FighterUpdate(
         name=name if name else None,
         division=parsed_division,
         birth_date=None,
