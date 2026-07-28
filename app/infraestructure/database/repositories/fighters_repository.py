@@ -1,9 +1,10 @@
 from datetime import datetime
 
-from models.fighter_model import FighterDB, FighterFeatures
-from services.map_features import map_api_to_features
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+
+from app.infraestructure.database.models.fighter_model import FighterDB, FighterFeatures
+from app.services.map_features import map_api_to_features
 
 
 class FighterRepository:

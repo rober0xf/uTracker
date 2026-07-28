@@ -26,3 +26,7 @@ reportAny = "none"
 
 [tool.black]
 line-length = 190
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

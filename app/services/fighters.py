@@ -1,9 +1,10 @@
-from domain.enums.enums import DivisionEnum
 from fastapi import Form
-from infraestructure.database.models.fighter_model import FighterDB
-from infraestructure.database.repositories.fighters_repository import FighterRepository
-from interfaces.schemas.fighters import FighterBase, FighterForm, FighterUpdate
-from services.api_services import get_external_fighter_features
+
+from app.domain.enums.enums import DivisionEnum
+from app.infraestructure.database.models.fighter_model import FighterDB
+from app.infraestructure.database.repositories.fighters_repository import FighterRepository
+from app.interfaces.schemas.fighters import FighterBase, FighterForm, FighterUpdate
+from app.services.api_services import get_external_fighter_features
 
 
 def get_all_fighters_service(repo: FighterRepository):
@@ -16,7 +17,7 @@ def get_all_fighters_service(repo: FighterRepository):
 def get_fighter_by_id_service(id: int, repo: FighterRepository):
     fighter = repo.get_by_id(id)
     if not fighter:
-        raise ValueError("fighter with id not found")
+        raise ValueError("fighter not found")
     return fighter
 
 
@@ -88,7 +89,7 @@ async def create_fighter_with_features_service(fighter_form: FighterForm, repo: 
 
 
 # we need to use this service because the way fastapi handles forms
-async def get_fighter_update_form(
+def get_fighter_update_form(
     name: str = Form(None),
     division: str = Form(None),
     wins: str = Form(None),

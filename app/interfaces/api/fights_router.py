@@ -1,13 +1,15 @@
 from typing import cast
 
-from core.templates import templates
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
-from infraestructure.database.repositories.cards_repository import CardRepository
-from infraestructure.database.repositories.fighters_repository import FighterRepository
-from infraestructure.database.repositories.fights_repository import FightRepository
-from schemas.fights import FightForm, FightRead, FightUpdate
-from services.fights import (
+
+from app.core.templates import templates
+from app.infraestructure.database.repositories.cards_repository import CardRepository
+from app.infraestructure.database.repositories.fighters_repository import FighterRepository
+from app.infraestructure.database.repositories.fights_repository import FightRepository
+from app.interfaces.api.injection import get_card_repository, get_fight_repository, get_fighter_repository
+from app.interfaces.schemas.fights import FightForm, FightRead, FightUpdate
+from app.services.fights import (
     create_fight_service,
     delete_fight_service,
     get_all_fights_service,
@@ -18,12 +20,10 @@ from services.fights import (
     predict_fight_service,
     update_fight_service,
 )
-from services.predictor import (
+from app.services.predictor import (
     FightPredictionRequest,
     FightPredictionResponse,
 )
-
-from .injection import get_card_repository, get_fight_repository, get_fighter_repository
 
 router = APIRouter(prefix="/fights", tags=["Fights"])
 
@@ -78,9 +78,7 @@ def update_fight_form(request: Request, id: int, fight_repo: FightRepository = f
 
 
 @router.post("/", name="create_fight", response_class=HTMLResponse, status_code=status.HTTP_201_CREATED)
-def create_fight(
-    request: Request, form_data: FightForm = fight_form_dep, fight_repo: FightRepository = fight_repo_dep, fighter_repo: FighterRepository = fighter_repo_dep
-):
+def create_fight(request: Request, form_data: FightForm = fight_form_dep, fight_repo: FightRepository = fight_repo_dep, fighter_repo: FighterRepository = fighter_repo_dep):
     fight = create_fight_service(form_data, fight_repo, fighter_repo)
     if not fight:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="error creating fight")

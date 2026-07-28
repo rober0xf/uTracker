@@ -1,5 +1,6 @@
 import httpx
-from infraestructure.database.settings import settings_api
+
+from app.infraestructure.database.settings import settings_api
 
 _fighter_cache: dict[str, dict] = {}
 
@@ -26,9 +27,7 @@ async def get_external_fighter_features(name: str) -> dict | None:
                 return None
 
             data = response.json()
-            fighter = (
-                data[0] if isinstance(data, list) and data else None
-            )  # [0] first appearance
+            fighter = data[0] if isinstance(data, list) and data else None  # [0] first appearance
             if fighter:
                 _fighter_cache[name] = fighter
             return fighter

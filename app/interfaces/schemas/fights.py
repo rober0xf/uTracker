@@ -1,7 +1,9 @@
 from datetime import date, datetime
+from typing import Annotated
 
-from domain.enums.enums import DivisionEnum, RoundsEnum, WinningMethodEnum
 from pydantic import BaseModel, ConfigDict, Field
+
+from app.domain.enums.enums import DivisionEnum, RoundsEnum, WinningMethodEnum
 
 
 class FightBase(BaseModel):
@@ -23,16 +25,17 @@ class FightRead(FightBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+# annotated is for keep quiet basedpyright
 class FightUpdate(BaseModel):
     rounds: RoundsEnum | None = None
     division: DivisionEnum | None = None
     method: WinningMethodEnum | None = None
-    card_id: int | None = Field(None, gt=0)
-    red_corner_id: int | None = Field(None, gt=0)
-    blue_corner_id: int | None = Field(None, gt=0)
-    favorite_fighter_id: int | None = Field(None, gt=0)
-    winner_id: int | None = Field(None, gt=0)
-    round_finish: int | None = Field(None, gt=0, le=5)
+    card_id: Annotated[int | None, Field(gt=0)] = None
+    red_corner_id: Annotated[int | None, Field(gt=0)] = None
+    blue_corner_id: Annotated[int | None, Field(gt=0)] = None
+    favorite_fighter_id: Annotated[int | None, Field(gt=0)] = None
+    winner_id: Annotated[int | None, Field(gt=0)] = None
+    round_finish: Annotated[int | None, Field(gt=0, le=5)] = None
     fight_date: date | None = None
 
 

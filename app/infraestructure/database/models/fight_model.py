@@ -1,11 +1,12 @@
 from datetime import date, datetime
 from typing import override
 
-from domain.enums.enums import DivisionEnum, RoundsEnum, WinningMethodEnum
 from sqlalchemy import Date, Enum, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from sqlalchemy.sql.schema import ForeignKey
+
+from app.domain.enums.enums import DivisionEnum, RoundsEnum, WinningMethodEnum
 
 from .base_model import Base
 from .fighter_model import FighterDB
@@ -27,10 +28,10 @@ class FightDB(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     # relationship definition
-    red_fighter: Mapped["FighterDB"] = relationship("FightersDB", foreign_keys=[red_corner])
-    blue_fighter: Mapped["FighterDB"] = relationship("FightersDB", foreign_keys=[blue_corner])
-    favorite_fighter: Mapped["FighterDB"] = relationship("FightersDB", foreign_keys=[favorite])
-    winner_fighter: Mapped["FighterDB"] = relationship("FightersDB", foreign_keys=[winner])
+    red_fighter: Mapped["FighterDB"] = relationship("FighterDB", foreign_keys=[red_corner])
+    blue_fighter: Mapped["FighterDB"] = relationship("FighterDB", foreign_keys=[blue_corner])
+    favorite_fighter: Mapped["FighterDB"] = relationship("FighterDB", foreign_keys=[favorite])
+    winner_fighter: Mapped["FighterDB"] = relationship("FighterDB", foreign_keys=[winner])
 
     @override
     def __repr__(self):

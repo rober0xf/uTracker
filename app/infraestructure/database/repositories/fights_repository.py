@@ -1,5 +1,6 @@
-from models.fight_model import FightDB
 from sqlalchemy.orm import Session
+
+from app.infraestructure.database.models.fight_model import FightDB
 
 
 class FightRepository:

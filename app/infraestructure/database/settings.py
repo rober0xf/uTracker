@@ -2,7 +2,7 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-ENV_PATH = Path(__file__).resolve().parent.parent.parent / ".env"
+ENV_PATH = Path(__file__).resolve().parent.parent.parent.parent / ".env"
 
 
 class DatabaseSettings(BaseSettings):

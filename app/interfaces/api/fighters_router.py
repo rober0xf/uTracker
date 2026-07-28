@@ -1,4 +1,3 @@
-from core.templates import templates
 from fastapi import (
     APIRouter,
     Depends,
@@ -7,9 +6,12 @@ from fastapi import (
     status,
 )
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
-from infraestructure.database.repositories.fighters_repository import FighterRepository
-from schemas.fighters import FighterForm, FighterRead, FighterUpdate
-from services.fighters import (
+
+from app.core.templates import templates
+from app.infraestructure.database.repositories.fighters_repository import FighterRepository
+from app.interfaces.api.injection import get_fighter_repository
+from app.interfaces.schemas.fighters import FighterForm, FighterRead, FighterUpdate
+from app.services.fighters import (
     create_fighter_service,
     create_fighter_with_features_service,
     delete_fighter_service,
@@ -18,8 +20,6 @@ from services.fighters import (
     get_fighter_update_form,
     update_fighter_service,
 )
-
-from .injection import get_fighter_repository
 
 router = APIRouter(prefix="/fighters", tags=["Fighters"])
 

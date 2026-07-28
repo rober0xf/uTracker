@@ -1,7 +1,9 @@
 from datetime import date, datetime
+from typing import Annotated
 
-from domain.enums.enums import DivisionEnum
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from app.domain.enums.enums import DivisionEnum
 
 
 class FighterBase(BaseModel):
@@ -37,16 +39,16 @@ class FighterRead(FighterBase):
 
 
 class FighterUpdate(BaseModel):
-    name: str | None = Field(None, min_length=5, max_length=50)
+    name: Annotated[str | None, Field(min_length=5, max_length=50)] = None
     division: DivisionEnum | None = None
     birth_date: date | None = None
-    wins: int | None = Field(None, ge=0)
-    losses: int | None = Field(None, ge=0)
-    draws: int | None = Field(None, ge=0)
-    no_contest: int | None = Field(None, ge=0)
-    height: float | None = Field(None, gt=0, le=3.0)
-    weight: float | None = Field(None, gt=0, le=120)
-    reach: float | None = Field(None, gt=0, le=225)
+    wins: Annotated[int | None, Field(ge=0)] = None
+    losses: Annotated[int | None, Field(ge=0)] = None
+    draws: Annotated[int | None, Field(ge=0)] = None
+    no_contest: Annotated[int | None, Field(ge=0)] = None
+    height: Annotated[float | None, Field(gt=0, le=3.0)] = None
+    weight: Annotated[float | None, Field(gt=0, le=120)] = None
+    reach: Annotated[float | None, Field(gt=0, le=225)] = None
 
     @field_validator("name")
     @classmethod

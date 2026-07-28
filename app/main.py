@@ -1,15 +1,15 @@
-from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
-from app.core.templates import templates
-from app.db.models import Base
-from app.db.session import engine
-from app.db.settings import settings_api
-from app.routes.cards import router as cards_router
-from app.routes.fighters import router as fighters_router
-from app.routes.fights import router as fights_router
 
+from app.core.templates import templates
+from app.infraestructure.database.models.base_model import Base
+from app.infraestructure.database.session import engine
+from app.infraestructure.database.settings import settings_api
+from app.interfaces.api.cards_router import router as cards_router
+from app.interfaces.api.fighters_router import router as fighters_router
+from app.interfaces.api.fights_router import router as fights_router
 
 RAPIDAPI_API_KEY = settings_api.rapidapi_api_key
 if not RAPIDAPI_API_KEY:
@@ -20,7 +20,6 @@ with engine.connect() as conn:
 
 # create the tables
 Base.metadata.create_all(bind=engine)
-
 
 # server instances & html rendering
 app = FastAPI()

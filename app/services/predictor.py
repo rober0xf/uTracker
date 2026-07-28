@@ -2,9 +2,10 @@ import json
 
 import torch
 import torch.nn as nn
-from infraestructure.database.models.fighter_model import FighterFeatures
-from infraestructure.database.repositories.fighters_repository import FighterRepository
 from pydantic import BaseModel
+
+from app.infraestructure.database.models.fighter_model import FighterFeatures
+from app.infraestructure.database.repositories.fighters_repository import FighterRepository
 
 model = None
 

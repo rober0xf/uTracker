@@ -1,10 +1,11 @@
 from datetime import date, datetime
 
-from domain.enums.enums import DivisionEnum
 from sqlalchemy import CheckConstraint, Date, DateTime, Enum, Float, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from sqlalchemy.sql.schema import ForeignKey
+
+from app.domain.enums.enums import DivisionEnum
 
 from .base_model import Base
 
@@ -48,4 +49,4 @@ class FighterFeatures(Base):
 
     updated_at: Mapped[datetime] = mapped_column(DateTime, onupdate=func.now(), server_default=func.now())
 
-    fighter: Mapped["FighterDB"] = relationship("FightersDB", back_populates="features")
+    fighter: Mapped["FighterDB"] = relationship("FighterDB", back_populates="features")

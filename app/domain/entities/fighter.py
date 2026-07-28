@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import date
 
-from enums.enums import DivisionEnum
+from app.domain.enums.enums import DivisionEnum
 
 
 @dataclass

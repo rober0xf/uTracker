@@ -1,16 +1,16 @@
-from core.templates import templates
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.responses import HTMLResponse, RedirectResponse
-from infraestructure.database.repositories.cards_repository import CardRepository
-from schemas.card import CardCreate, CardRead
-from services.cards import (
+
+from app.core.templates import templates
+from app.infraestructure.database.repositories.cards_repository import CardRepository
+from app.interfaces.api.injection import get_card_repository
+from app.interfaces.schemas.card import CardCreate, CardRead
+from app.services.cards import (
     create_card_service,
     delete_card_service,
     get_all_cards_service,
     get_card_by_id_service,
 )
-
-from .injection import get_card_repository
 
 router = APIRouter(prefix="/cards", tags=["Cards"])
 

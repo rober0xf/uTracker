@@ -1,12 +1,13 @@
 import torch
-from domain.enums.enums import DivisionEnum, RoundsEnum, WinningMethodEnum
 from fastapi import Depends, Form
-from infraestructure.database.models.fight_model import FightDB
-from infraestructure.database.repositories.cards_repository import CardRepository
-from infraestructure.database.repositories.fighters_repository import FighterRepository
-from infraestructure.database.repositories.fights_repository import FightRepository
-from interfaces.schemas.fights import FightBase, FightForm, FightUpdate, FightUpdateForm
-from services.predictor import (
+
+from app.domain.enums.enums import DivisionEnum, RoundsEnum, WinningMethodEnum
+from app.infraestructure.database.models.fight_model import FightDB
+from app.infraestructure.database.repositories.cards_repository import CardRepository
+from app.infraestructure.database.repositories.fighters_repository import FighterRepository
+from app.infraestructure.database.repositories.fights_repository import FightRepository
+from app.interfaces.schemas.fights import FightBase, FightForm, FightUpdate, FightUpdateForm
+from app.services.predictor import (
     FightPredictionRequest,
     FightPredictionResponse,
     get_or_fetch_fighter_features,
@@ -130,7 +131,7 @@ def delete_fight_service(id: int, repo: FightRepository):
     return None
 
 
-async def get_fight_update_form(form: FightUpdateForm = Depends()) -> FightUpdate:
+def get_fight_update_form(form: FightUpdateForm = Depends()) -> FightUpdate:
     return FightUpdate(
         rounds=RoundsEnum(form.rounds) if form.rounds else None,
         division=DivisionEnum(form.division) if form.division else None,

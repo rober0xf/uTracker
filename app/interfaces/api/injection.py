@@ -1,11 +1,12 @@
 from typing import Annotated
 
 from fastapi import Depends
-from infraestructure.database.repositories.cards_repository import CardRepository
-from infraestructure.database.repositories.fighters_repository import FighterRepository
-from infraestructure.database.repositories.fights_repository import FightRepository
-from infraestructure.database.session import get_db
 from sqlalchemy.orm import Session
+
+from app.infraestructure.database.repositories.cards_repository import CardRepository
+from app.infraestructure.database.repositories.fighters_repository import FighterRepository
+from app.infraestructure.database.repositories.fights_repository import FightRepository
+from app.infraestructure.database.session import get_db
 
 DBSession = Annotated[Session, Depends(get_db)]
 
